@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient, ListMemberRole, PlaceSourceType, ListPlaceStatus, RoutePlanStatus, TransportMode } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { buildGoogleMapsDirectionsUrl } from "@/server/services/google/maps-url.builder";
 
@@ -72,10 +72,10 @@ async function main() {
 
   await prisma.listMember.createMany({
     data: [
-      { id: "30000000-0000-4000-8000-000000000001", listId: rotterdamList.id, userId: anna.id, role: ListMemberRole.OWNER },
-      { id: "30000000-0000-4000-8000-000000000002", listId: rotterdamList.id, userId: bas.id, role: ListMemberRole.EDITOR },
-      { id: "30000000-0000-4000-8000-000000000003", listId: amsterdamList.id, userId: bas.id, role: ListMemberRole.OWNER },
-      { id: "30000000-0000-4000-8000-000000000004", listId: amsterdamList.id, userId: anna.id, role: ListMemberRole.VIEWER }
+      { id: "30000000-0000-4000-8000-000000000001", listId: rotterdamList.id, userId: anna.id, role: "OWNER" },
+      { id: "30000000-0000-4000-8000-000000000002", listId: rotterdamList.id, userId: bas.id, role: "EDITOR" },
+      { id: "30000000-0000-4000-8000-000000000003", listId: amsterdamList.id, userId: bas.id, role: "OWNER" },
+      { id: "30000000-0000-4000-8000-000000000004", listId: amsterdamList.id, userId: anna.id, role: "VIEWER" }
     ]
   });
 
@@ -83,7 +83,7 @@ async function main() {
     data: [
       {
         id: "40000000-0000-4000-8000-000000000001",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Man Met Bril Koffie",
         addressLine: "Vijverhofstraat 70",
         city: "Rotterdam",
@@ -96,7 +96,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000002",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Markthal",
         addressLine: "Dominee Jan Scharpstraat 298",
         city: "Rotterdam",
@@ -109,7 +109,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000003",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Depot Boijmans Van Beuningen",
         addressLine: "Museumpark 24",
         city: "Rotterdam",
@@ -122,7 +122,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000004",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Het Park",
         addressLine: "Baden Powelllaan 2",
         city: "Rotterdam",
@@ -135,7 +135,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000005",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Fenix Food Factory",
         addressLine: "Veerlaan 19D",
         city: "Rotterdam",
@@ -148,7 +148,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000006",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Bocca Coffee",
         addressLine: "Kerkstraat 96H",
         city: "Amsterdam",
@@ -161,7 +161,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000007",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Rijksmuseum",
         addressLine: "Museumstraat 1",
         city: "Amsterdam",
@@ -174,7 +174,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000008",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Vondelpark",
         addressLine: "Vondelpark",
         city: "Amsterdam",
@@ -187,7 +187,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000009",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Foodhallen",
         addressLine: "Bellamyplein 51",
         city: "Amsterdam",
@@ -200,7 +200,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000010",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "NDSM Wharf",
         addressLine: "NDSM-Plein 90",
         city: "Amsterdam",
@@ -213,7 +213,7 @@ async function main() {
       },
       {
         id: "40000000-0000-4000-8000-000000000011",
-        sourceType: PlaceSourceType.MANUAL,
+        sourceType: "MANUAL",
         name: "Hotel New York",
         addressLine: "Koninginnenhoofd 1",
         city: "Rotterdam",
@@ -236,7 +236,7 @@ async function main() {
           placeId: place.id,
           priority: index % 3,
           sortOrder: index,
-          status: index < 2 ? ListPlaceStatus.VISITED : ListPlaceStatus.PLANNED,
+          status: index < 2 ? "VISITED" : "PLANNED",
           visitedAt: index < 2 ? new Date(Date.now() - (index + 1) * 86_400_000) : null,
           visitedByUserId: index < 2 ? anna.id : null,
           includeInRoute: true,
@@ -256,7 +256,7 @@ async function main() {
           placeId: place.id,
           priority: (index + 1) % 3,
           sortOrder: index,
-          status: index === 0 ? ListPlaceStatus.VISITED : ListPlaceStatus.PLANNED,
+          status: index === 0 ? "VISITED" : "PLANNED",
           visitedAt: index === 0 ? new Date(Date.now() - 2 * 86_400_000) : null,
           visitedByUserId: index === 0 ? bas.id : null,
           includeInRoute: true,
@@ -281,12 +281,12 @@ async function main() {
       listId: rotterdamList.id,
       createdByUserId: anna.id,
       title: "Vandaag in Rotterdam",
-      transportMode: TransportMode.WALKING,
+      transportMode: "WALKING",
       startPlaceLabel: "Rotterdam Centraal",
       startLatitude: 51.92442,
       startLongitude: 4.46866,
       googleMapsUrl: buildGoogleMapsDirectionsUrl({
-        transportMode: TransportMode.WALKING,
+        transportMode: "WALKING",
         start: {
           label: "Rotterdam Centraal",
           latitude: 51.92442,
@@ -298,7 +298,7 @@ async function main() {
           longitude: place.longitude ? Number(place.longitude) : null
         }))
       }),
-      status: RoutePlanStatus.ACTIVE
+      status: "ACTIVE"
     }
   });
 

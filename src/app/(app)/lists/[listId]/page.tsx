@@ -1,0 +1,250 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { AppTopBar } from "@/components/navigation/app-topbar";
+import { InviteMemberForm } from "@/components/members/invite-member-form";
+import { MemberRow } from "@/components/members/member-row";
+import { LazyMap } from "@/components/map/lazy-map";
+import { MapPinsPanel } from "@/components/map/map-pins-panel";
+import { ListDetailHeader } from "@/components/lists/list-detail-header";
+import { ListPlacesPanel } from "@/components/lists/list-places-panel";
+import { PlaceForm } from "@/components/places/place-form";
+import { getCurrentUser } from "@/lib/auth/auth";
+import { env } from "@/lib/env/env";
+import { archiveListAction } from "@/app/(app)/actions";
+import { ListRepository } from "@/server/repositories/list.repository";
+import { PlaceRepository } from "@/server/repositories/place.repository";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageContainer } from "@/components/ui/page-container";
+import { SectionHeader } from "@/components/ui/section-header";
+import { StickyActionBar } from "@/components/ui/sticky-action-bar";
+import { addPlaceAction, shareListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
+import { getDictionary } from "@/lib/i18n/server";
+
+const listRepository = new ListRepository();
+const placeRepository = new PlaceRepository();
+
+export default async function ListDetailPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ listId: string }>;
+  searchParams?: Promise<{ edit?: string }>;
+}) {
+  const { listId } = await params;
+  const query = searchParams ? await searchParams : undefined;
+  const { dict } = await getDictionary();
+  const user = await getCurrentUser();
+  const list = user ? await listRepository.findDetail(listId, user.id) : null;
+  const categories = await placeRepository.listCategories();
+
+  if (!list) {
+    notFound();
+  }
+
+  const plannedCount = list.listPlaces.filter((item) => item.status === "PLANNED").length;
+  const visitedCount = list.listPlaces.filter((item) => item.status === "VISITED").length;
+  const editingListPlace = query?.edit ? list.listPlaces.find((item) => item.id === query.edit) : null;
+
+  return (
+    <PageContainer className="gap-4">
+      <AppTopBar
+        title={list.name}
+        subtitle={dict.listDetail.topSubtitle}
+        backHref="/lists"
+        backLabel={dict.common.back}
+        action={
+          <form action={archiveListAction}>
+            <input type="hidden" name="listId" value={list.id} />
+            <Button variant="secondary" type="submit" size="sm">
+              {dict.listDetail.archive}
+            </Button>
+          </form>
+        }
+      />
+      <ListDetailHeader
+        title={list.name}
+        description={list.description}
+        plannedCount={plannedCount}
+        visitedCount={visitedCount}
+        shareHref={`/lists/${list.id}/members`}
+        copy={{
+          headerBadge: dict.listDetail.headerBadge,
+          noDescription: dict.listDetail.noDescription,
+          planned: dict.listDetail.planned,
+          visited: dict.listDetail.visited,
+          planToday: dict.listDetail.planToday,
+          actionsHint: dict.listDetail.actionsHint,
+          map: dict.listDetail.mapTitle,
+          share: dict.listDetail.sharedMembers
+        }}
+        planTodayHref={`/today?listId=${list.id}`}
+      />
+      <section className="space-y-3 pt-1">
+        <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
+        <ListPlacesPanel
+          items={list.listPlaces.map((item) => ({
+            id: item.id,
+            listId: list.id,
+            name: item.place.name,
+            location: [item.place.addressLine, item.place.city, item.place.country].filter(Boolean).join(", ") || dict.listDetail.noAddress,
+            category: item.place.category?.name,
+            note: item.note,
+            status: item.status,
+            priority: item.priority,
+            sortOrder: item.sortOrder,
+            isFavorite: item.isFavorite,
+            includeInRoute: item.includeInRoute
+          }))}
+          returnPath={`/lists/${list.id}`}
+          copy={dict.listDetail}
+        />
+      </section>
+      <details id="add-place" className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]" open={Boolean(editingListPlace)}>
+        <summary className="cursor-pointer list-none text-[15px] font-semibold">
+          {editingListPlace ? dict.listDetail.edit : dict.listDetail.addPlaceSummary}
+        </summary>
+        <div className="mt-4">
+          <PlaceForm
+            action={editingListPlace ? updateListPlaceAndPlaceAction : addPlaceAction}
+            listId={list.id}
+            categories={categories.map((category) => ({ id: category.id, name: category.name }))}
+            enableLookup={Boolean(env.GOOGLE_MAPS_PLACE_API_KEY)}
+            initialValues={
+              editingListPlace
+                ? {
+                    name: editingListPlace.place.name,
+                    addressLine: editingListPlace.place.addressLine ?? "",
+                    city: editingListPlace.place.city ?? "",
+                    country: editingListPlace.place.country ?? "",
+                    categoryId: editingListPlace.place.categoryId ?? "",
+                    note: editingListPlace.note ?? "",
+                    priority: editingListPlace.priority,
+                    includeInRoute: editingListPlace.includeInRoute,
+                    isFavorite: editingListPlace.isFavorite,
+                    externalSourceId: editingListPlace.place.externalSourceId ?? "",
+                    latitude: editingListPlace.place.latitude ? Number(editingListPlace.place.latitude) : null,
+                    longitude: editingListPlace.place.longitude ? Number(editingListPlace.place.longitude) : null,
+                    googleMapsUrl: editingListPlace.place.googleMapsUrl ?? ""
+                  }
+                : undefined
+            }
+            copy={dict.listDetail.placeForm}
+            footer={
+              <>
+                {editingListPlace ? <input type="hidden" name="listPlaceId" value={editingListPlace.id} /> : null}
+                {editingListPlace ? <input type="hidden" name="placeId" value={editingListPlace.placeId} /> : null}
+                <div className="grid grid-cols-2 gap-2">
+                  {editingListPlace ? (
+                    <Link
+                      href={`/lists/${list.id}`}
+                      className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+                    >
+                      {dict.common.back}
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+                  <Button type="submit" fullWidth>
+                    {editingListPlace ? dict.listDetail.edit : dict.listDetail.savePlace}
+                  </Button>
+                </div>
+              </>
+            }
+          />
+        </div>
+      </details>
+      <section className="space-y-3">
+        <SectionHeader title={dict.listDetail.mapTitle} subtitle={dict.listDetail.mapSubtitle} />
+        {list.listPlaces.length > 0 ? (
+          <>
+            <LazyMap
+              title={dict.listDetail.mapCardTitle}
+              items={list.listPlaces.map((item) => ({ id: item.id, name: item.place.name }))}
+              browserKeyAvailable={Boolean(env.GOOGLE_MAPS_BROWSER_KEY)}
+              copy={{
+                unavailableTitle: dict.listDetail.mapUnavailable,
+                unavailableBody: dict.listDetail.mapUnavailableBody,
+                loaded: dict.listDetail.mapLoaded,
+                selectedPlaces: dict.listDetail.mapSelectedPlaces
+              }}
+            />
+            <MapPinsPanel
+              items={list.listPlaces.map((item) => ({ id: item.id, name: item.place.name }))}
+              copy={{
+                title: dict.listDetail.selectedPlaces,
+                pins: dict.listDetail.pins,
+                current: dict.listDetail.current
+              }}
+            />
+          </>
+        ) : (
+          <EmptyState title={dict.listDetail.noMapItems} description={dict.listDetail.noMapItemsBody} />
+        )}
+      </section>
+      <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+        <summary className="cursor-pointer list-none text-[15px] font-semibold">{dict.listDetail.sharedMembers}</summary>
+        <div className="mt-4 space-y-4">
+          <SectionHeader
+            title={dict.listDetail.membersTitle}
+            subtitle={dict.listDetail.membersSubtitle}
+            action={
+              <Link href={`/lists/${list.id}/members`} className="text-sm font-semibold text-[var(--accent)]">
+                {dict.listDetail.openMembers}
+              </Link>
+            }
+          />
+          {list.members.slice(0, 3).map((member) => (
+            <MemberRow
+              key={member.id}
+              email={member.user.email}
+              role={member.role}
+              labels={{ owner: dict.members.owner, editor: dict.members.editor, viewer: dict.members.viewer }}
+            />
+          ))}
+          <InviteMemberForm
+            action={shareListAction}
+            listId={list.id}
+            copy={{
+              emailPlaceholder: dict.members.emailPlaceholder,
+              emailLabel: dict.members.emailLabel,
+              roleLabel: dict.members.roleLabel,
+              viewer: dict.members.viewer,
+              editor: dict.members.editor
+            }}
+            footer={
+              <Button type="submit" fullWidth>
+                {dict.listDetail.inviteMember}
+              </Button>
+            }
+          />
+        </div>
+      </details>
+      <StickyActionBar>
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            href={`/today?listId=${list.id}`}
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+          >
+            {dict.listDetail.planToday}
+          </Link>
+          {list.routePlans[0] ? (
+            <Link
+              href={`/route/${list.routePlans[0].id}`}
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-foreground)] shadow-[var(--shadow)]"
+            >
+              {dict.listDetail.openRoute}
+            </Link>
+          ) : (
+            <Link
+              href={`/today?listId=${list.id}`}
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-foreground)] shadow-[var(--shadow)]"
+            >
+              {dict.listDetail.addToRoute}
+            </Link>
+          )}
+        </div>
+      </StickyActionBar>
+    </PageContainer>
+  );
+}

@@ -184,3 +184,4 @@ Demo users:
 - Map rendering is intentionally not the primary interaction model in MVP.
 - Route optimization is deliberately lightweight and documented, not simulated.
 - Local development email capture exists only to support real magic-link testing without SMTP.
+# samenroute

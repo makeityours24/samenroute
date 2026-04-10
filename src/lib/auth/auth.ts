@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/env/env";
 import { acceptPendingListInvitesService } from "@/server/services/lists/accept-pending-list-invites.service";
+import { AppError } from "@/server/services/errors";
 
 const devEmailDir = path.join(process.cwd(), ".tmp", "emails");
 const MAGIC_LINK_MAX_AGE_SECONDS = 60 * 60 * 24;
@@ -54,6 +55,10 @@ async function deliverMagicLinkEmail(params: {
   html: string;
 }) {
   if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD) {
+    if (process.env.NODE_ENV === "production") {
+      throw new AppError("E-mailverzending voor uitnodigingen is nog niet ingesteld in productie.");
+    }
+
     await storeMagicLink(params.email, params.url);
     return;
   }
@@ -69,13 +74,18 @@ async function deliverMagicLinkEmail(params: {
     })
   );
 
-  await transport.sendMail({
-    to: params.email,
-    from: env.EMAIL_FROM,
-    subject: params.subject,
-    text: params.text,
-    html: params.html
-  });
+  try {
+    await transport.sendMail({
+      to: params.email,
+      from: env.EMAIL_FROM,
+      subject: params.subject,
+      text: params.text,
+      html: params.html
+    });
+  } catch (error) {
+    console.error("Failed to send email magic link", error);
+    throw new AppError("De uitnodigingsmail kon niet worden verstuurd.");
+  }
 }
 
 export async function sendEmailMagicLink(input: {

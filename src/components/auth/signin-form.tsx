@@ -7,9 +7,13 @@ import { Input } from "@/components/ui/input";
 
 export function SignInForm({
   enableDemoLogin,
+  defaultEmail,
+  callbackUrl,
   copy
 }: {
   enableDemoLogin: boolean;
+  defaultEmail?: string;
+  callbackUrl?: string;
   copy: {
     emailPlaceholder: string;
     emailButton: string;
@@ -26,7 +30,7 @@ export function SignInForm({
     demoOpenError: string;
   };
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail ?? "");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [sentEmail, setSentEmail] = useState<string | null>(null);
@@ -43,7 +47,7 @@ export function SignInForm({
     const result = await signIn("email", {
       email: nextEmail,
       redirect: false,
-      callbackUrl: "/home"
+      callbackUrl: callbackUrl ?? "/home"
     });
 
     if (result?.error) {

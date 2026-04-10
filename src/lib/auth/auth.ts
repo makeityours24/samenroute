@@ -32,6 +32,14 @@ export function getSessionCookieConfig() {
   };
 }
 
+function normalizeAppPath(input: string) {
+  if (!input.startsWith("/")) {
+    return "/home";
+  }
+
+  return input;
+}
+
 async function storeMagicLink(email: string, url: string) {
   await fs.mkdir(devEmailDir, { recursive: true });
   const filename = path.join(devEmailDir, `${Date.now()}-${email.replace(/[^a-z0-9]/gi, "_")}.json`);
@@ -79,8 +87,8 @@ export async function sendEmailMagicLink(input: {
   const email = input.email.trim().toLowerCase();
   const token = randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + MAGIC_LINK_MAX_AGE_SECONDS * 1000);
-  const callbackUrl = new URL(input.callbackPath, env.APP_BASE_URL).toString();
-  const url = new URL("/api/auth/callback/email", env.AUTH_URL);
+  const callbackUrl = new URL(normalizeAppPath(input.callbackPath), env.APP_BASE_URL).toString();
+  const url = new URL("/api/auth/callback/email", env.APP_BASE_URL);
 
   url.searchParams.set("callbackUrl", callbackUrl);
   url.searchParams.set("token", token);
@@ -169,6 +177,17 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = user.id;
         session.user.image = "image" in user ? (user.image ?? null) : null;
+      }
+
+      if (user.email && user.id) {
+        try {
+          await acceptPendingListInvitesService({
+            userId: user.id,
+            email: user.email
+          });
+        } catch (error) {
+          console.error("Failed to sync pending list invites from session", error);
+        }
       }
 
       return session;

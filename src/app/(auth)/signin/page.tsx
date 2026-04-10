@@ -10,16 +10,20 @@ import { getDictionary } from "@/lib/i18n/server";
 export default async function SignInPage({
   searchParams
 }: {
-  searchParams?: Promise<{ demo?: string }>;
+  searchParams?: Promise<{ demo?: string; email?: string; callbackUrl?: string }>;
 }) {
   const user = await getCurrentUser();
   const { locale, dict } = await getDictionary();
-  if (searchParams) {
-    await searchParams;
-  }
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
+  const callbackUrl =
+    resolvedSearchParams?.callbackUrl && resolvedSearchParams.callbackUrl.startsWith("/")
+      ? resolvedSearchParams.callbackUrl
+      : "/home";
+  const email = resolvedSearchParams?.email ?? "";
 
   if (user) {
-    redirect("/home");
+    redirect(callbackUrl as never);
   }
 
   return (
@@ -42,7 +46,12 @@ export default async function SignInPage({
           <h1 className="text-2xl font-semibold">{dict.auth.title}</h1>
           <p className="text-sm text-[var(--muted-foreground)]">{dict.auth.body}</p>
         </div>
-        <SignInForm enableDemoLogin={process.env.NODE_ENV !== "production"} copy={dict.auth} />
+        <SignInForm
+          enableDemoLogin={process.env.NODE_ENV !== "production"}
+          defaultEmail={email}
+          callbackUrl={callbackUrl}
+          copy={dict.auth}
+        />
         {process.env.NODE_ENV !== "production" && env.AUTH_URL.includes("localhost") ? (
           <div className="flex flex-col gap-2 text-sm">
             <a href="/api/dev/open-latest-magic-link" className="text-[var(--accent)]">

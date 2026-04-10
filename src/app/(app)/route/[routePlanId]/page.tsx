@@ -48,12 +48,33 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
   }
 
   const nextStop = routePlan.stops.find((stop) => stop.stopOrder === currentStop.stopOrder + 1);
+  const explanationItems = [
+    routePlan.startPlaceLabel
+      ? dict.route.explanationStartPoint.replace("{startPoint}", routePlan.startPlaceLabel)
+      : dict.route.explanationNoStartPoint,
+    nextStop && currentStop.listPlace.place.city && nextStop.listPlace.place.city && currentStop.listPlace.place.city === nextStop.listPlace.place.city
+      ? dict.route.explanationClustered.replace("{area}", currentStop.listPlace.place.city)
+      : dict.route.explanationPracticalOrder
+  ];
 
   return (
     <PageContainer className="justify-between gap-4 pt-2">
       <section className="space-y-4">
         <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{dict.route.sessionLabel}</p>
         <p className="text-center text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.sessionHint}</p>
+        <Card className="space-y-3 bg-[var(--surface-subtle)] p-4">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{dict.route.explanationLabel}</p>
+            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.explanationIntro}</p>
+          </div>
+          <ul className="space-y-2 text-sm text-[var(--foreground)]">
+            {explanationItems.map((item) => (
+              <li key={item} className="rounded-2xl bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </Card>
         <RouteProgressBar current={completedCount + 1} total={routePlan.stops.length} label={dict.route.progress} />
         <CurrentStopCard
           name={currentStop.listPlace.place.name}
@@ -76,6 +97,7 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
             >
               {dict.route.openGoogleMaps}
             </a>
+            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.returnHint}</p>
           </Card>
         ) : null}
         <RouteSuggestionsCard

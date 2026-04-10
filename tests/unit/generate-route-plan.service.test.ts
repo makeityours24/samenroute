@@ -72,4 +72,39 @@ describe("generateRoutePlanService", () => {
 
     expect(ordered.map((item) => item.id)).toEqual(["lp_2", "lp_3", "lp_1"]);
   });
+
+  it("uses a nearest-neighbor path for fastest routes when a start point is given", () => {
+    const ordered = orderRouteCandidates({
+      transportMode: "WALKING",
+      routeOrderingStrategy: "FASTEST",
+      maxStops: 3,
+      start: { latitude: 0, longitude: 0 },
+      candidates: [
+        { id: "lp_1", priority: 0, sortOrder: 0, place: { name: "Far", latitude: 10, longitude: 10 } },
+        { id: "lp_2", priority: 0, sortOrder: 1, place: { name: "Near", latitude: 1, longitude: 1 } },
+        { id: "lp_3", priority: 0, sortOrder: 2, place: { name: "Middle", latitude: 2, longitude: 2 } }
+      ]
+    });
+
+    expect(ordered.map((item) => item.id)).toEqual(["lp_2", "lp_3", "lp_1"]);
+  });
+
+  it("finds a shortest open path for fastest routes when no start point is given", () => {
+    const ordered = orderRouteCandidates({
+      transportMode: "WALKING",
+      routeOrderingStrategy: "FASTEST",
+      maxStops: 4,
+      candidates: [
+        { id: "lp_1", priority: 0, sortOrder: 0, place: { name: "A", latitude: 0, longitude: 0 } },
+        { id: "lp_2", priority: 0, sortOrder: 1, place: { name: "B", latitude: 1, longitude: 0 } },
+        { id: "lp_3", priority: 0, sortOrder: 2, place: { name: "C", latitude: 2, longitude: 0 } },
+        { id: "lp_4", priority: 0, sortOrder: 3, place: { name: "No coords", latitude: null, longitude: null } }
+      ]
+    });
+
+    expect([
+      ["lp_1", "lp_2", "lp_3", "lp_4"],
+      ["lp_3", "lp_2", "lp_1", "lp_4"]
+    ]).toContainEqual(ordered.map((item) => item.id));
+  });
 });

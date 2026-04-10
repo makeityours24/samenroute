@@ -15,6 +15,12 @@ const activityLogRepository = new ActivityLogRepository();
 const googleMapsAdapter = new GoogleMapsAdapter();
 
 type RouteOrderingStrategy = z.infer<typeof generateRoutePlanSchema>["routeOrderingStrategy"];
+type RouteCandidate = {
+  id: string;
+  priority: number;
+  sortOrder: number;
+  place: { name: string; latitude: unknown; longitude: unknown };
+};
 
 function calculateDistance(
   origin: { latitude: number; longitude: number },
@@ -23,15 +29,162 @@ function calculateDistance(
   return Math.sqrt((origin.latitude - target.latitude) ** 2 + (origin.longitude - target.longitude) ** 2);
 }
 
+function getCoordinates(place: RouteCandidate["place"]) {
+  if (place.latitude == null || place.longitude == null || place.latitude === "" || place.longitude === "") {
+    return null;
+  }
+
+  const latitude = Number(place.latitude);
+  const longitude = Number(place.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return { latitude, longitude };
+}
+
+function sortFallbackCandidates(candidates: RouteCandidate[]) {
+  return [...candidates].sort((left, right) => left.sortOrder - right.sortOrder || right.priority - left.priority);
+}
+
+function buildOptimalPath(input: {
+  candidates: RouteCandidate[];
+  start?: { latitude: number; longitude: number };
+}) {
+  const coordinates = input.candidates.map((candidate) => getCoordinates(candidate.place));
+
+  if (coordinates.some((value) => !value)) {
+    return {
+      ordered: sortFallbackCandidates(input.candidates),
+      totalDistance: Number.POSITIVE_INFINITY
+    };
+  }
+
+  const points = coordinates as Array<{ latitude: number; longitude: number }>;
+  const candidateCount = input.candidates.length;
+  const subsetCount = 1 << candidateCount;
+  const dp = Array.from({ length: subsetCount }, () => Array<number>(candidateCount).fill(Number.POSITIVE_INFINITY));
+  const previous = Array.from({ length: subsetCount }, () => Array<number>(candidateCount).fill(-1));
+
+  for (let index = 0; index < candidateCount; index += 1) {
+    dp[1 << index][index] = input.start ? calculateDistance(input.start, points[index]) : 0;
+  }
+
+  for (let mask = 1; mask < subsetCount; mask += 1) {
+    for (let endIndex = 0; endIndex < candidateCount; endIndex += 1) {
+      if ((mask & (1 << endIndex)) === 0) {
+        continue;
+      }
+
+      const currentCost = dp[mask][endIndex];
+
+      if (!Number.isFinite(currentCost)) {
+        continue;
+      }
+
+      for (let nextIndex = 0; nextIndex < candidateCount; nextIndex += 1) {
+        if (mask & (1 << nextIndex)) {
+          continue;
+        }
+
+        const nextMask = mask | (1 << nextIndex);
+        const nextCost = currentCost + calculateDistance(points[endIndex], points[nextIndex]);
+
+        if (nextCost < dp[nextMask][nextIndex]) {
+          dp[nextMask][nextIndex] = nextCost;
+          previous[nextMask][nextIndex] = endIndex;
+          continue;
+        }
+
+        if (nextCost === dp[nextMask][nextIndex]) {
+          const currentCandidate = input.candidates[nextIndex];
+          const previousCandidate = input.candidates[previous[nextMask][nextIndex] === -1 ? nextIndex : previous[nextMask][nextIndex]];
+
+          if (
+            currentCandidate.priority > previousCandidate.priority ||
+            (currentCandidate.priority === previousCandidate.priority && currentCandidate.sortOrder < previousCandidate.sortOrder)
+          ) {
+            previous[nextMask][nextIndex] = endIndex;
+          }
+        }
+      }
+    }
+  }
+
+  const fullMask = subsetCount - 1;
+  let bestEndIndex = 0;
+
+  for (let index = 1; index < candidateCount; index += 1) {
+    const leftCost = dp[fullMask][index];
+    const rightCost = dp[fullMask][bestEndIndex];
+    const leftCandidate = input.candidates[index];
+    const rightCandidate = input.candidates[bestEndIndex];
+
+    if (
+      leftCost < rightCost ||
+      (leftCost === rightCost &&
+        (leftCandidate.priority > rightCandidate.priority ||
+          (leftCandidate.priority === rightCandidate.priority && leftCandidate.sortOrder < rightCandidate.sortOrder)))
+    ) {
+      bestEndIndex = index;
+    }
+  }
+
+  const orderedIndices: number[] = [];
+  let mask = fullMask;
+  let currentIndex = bestEndIndex;
+
+  while (currentIndex !== -1) {
+    orderedIndices.push(currentIndex);
+    const previousIndex = previous[mask][currentIndex];
+    mask ^= 1 << currentIndex;
+    currentIndex = previousIndex;
+  }
+
+  orderedIndices.reverse();
+
+  return {
+    ordered: orderedIndices.map((index) => input.candidates[index]),
+    totalDistance: dp[fullMask][bestEndIndex]
+  };
+}
+
+function orderFastestCandidates(input: {
+  candidates: RouteCandidate[];
+  maxStops: number;
+  start?: { latitude?: number; longitude?: number };
+}) {
+  const withCoordinates = input.candidates.filter((candidate) => getCoordinates(candidate.place));
+  const withoutCoordinates = input.candidates.filter((candidate) => !getCoordinates(candidate.place));
+  const fallbackTail = sortFallbackCandidates(withoutCoordinates);
+
+  if (withCoordinates.length === 0) {
+    return sortFallbackCandidates(input.candidates).slice(0, input.maxStops);
+  }
+
+  const path = buildOptimalPath({
+    candidates: withCoordinates,
+    start:
+      typeof input.start?.latitude === "number" && typeof input.start.longitude === "number"
+        ? {
+            latitude: input.start.latitude,
+            longitude: input.start.longitude
+          }
+        : undefined
+  });
+
+  if (!path.ordered.length) {
+    return sortFallbackCandidates(input.candidates).slice(0, input.maxStops);
+  }
+
+  return [...path.ordered, ...fallbackTail].slice(0, input.maxStops);
+}
+
 export function orderRouteCandidates(input: {
   transportMode: TransportMode;
   routeOrderingStrategy: RouteOrderingStrategy;
-  candidates: Array<{
-    id: string;
-    priority: number;
-    sortOrder: number;
-    place: { name: string; latitude: unknown; longitude: unknown };
-  }>;
+  candidates: RouteCandidate[];
   maxStops: number;
   start?: { latitude?: number; longitude?: number };
 }) {
@@ -47,33 +200,11 @@ export function orderRouteCandidates(input: {
       .slice(0, input.maxStops);
   }
 
-  if (typeof input.start?.latitude === "number" && typeof input.start.longitude === "number") {
-    candidates.sort((left, right) => {
-      const leftHasCoords =
-        typeof left.place.latitude === "object" || typeof left.place.latitude === "number" || left.place.latitude === null;
-      const rightHasCoords =
-        typeof right.place.latitude === "object" || typeof right.place.latitude === "number" || right.place.latitude === null;
-
-      if (!leftHasCoords || !rightHasCoords) {
-        return left.sortOrder - right.sortOrder || right.priority - left.priority;
-      }
-
-      const leftDistance = calculateDistance(input.start as { latitude: number; longitude: number }, {
-        latitude: Number(left.place.latitude),
-        longitude: Number(left.place.longitude)
-      });
-      const rightDistance = calculateDistance(input.start as { latitude: number; longitude: number }, {
-        latitude: Number(right.place.latitude),
-        longitude: Number(right.place.longitude)
-      });
-
-      return leftDistance - rightDistance || right.priority - left.priority || left.sortOrder - right.sortOrder;
-    });
-  } else {
-    candidates.sort((left, right) => left.sortOrder - right.sortOrder || right.priority - left.priority);
-  }
-
-  return candidates.slice(0, input.maxStops);
+  return orderFastestCandidates({
+    candidates,
+    maxStops: input.maxStops,
+    start: input.start
+  });
 }
 
 export async function generateRoutePlanService(user: AuthorizedUser, input: unknown) {

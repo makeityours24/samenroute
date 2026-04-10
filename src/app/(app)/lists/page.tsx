@@ -37,12 +37,20 @@ export default async function ListsPage() {
                 placeCount={list._count.listPlaces}
                 visitedCount={0}
                 shared={list.members.length > 1}
+                membershipLabel={
+                  user
+                    ? list.ownerUserId === user.id
+                      ? dict.members.owner
+                      : (list.members.find((member) => member.userId === user.id)?.role === "EDITOR" ? dict.members.editor : dict.members.viewer)
+                    : undefined
+                }
                 copy={{
                   shared: dict.lists.shared,
                   private: dict.lists.private,
                   noDescription: dict.lists.noDescription,
                   placesCount: dict.lists.placesCount,
-                  visitedCount: dict.lists.visitedCount
+                  visitedCount: dict.lists.visitedCount,
+                  rolePrefix: dict.lists.rolePrefix
                 }}
               />
               <div className="flex justify-end pr-1">
@@ -71,12 +79,20 @@ export default async function ListsPage() {
               placeCount={list._count.listPlaces}
               visitedCount={0}
               shared={list.members.length > 1}
+              membershipLabel={
+                user
+                  ? list.ownerUserId === user.id
+                    ? dict.members.owner
+                    : (list.members.find((member) => member.userId === user.id)?.role === "EDITOR" ? dict.members.editor : dict.members.viewer)
+                  : undefined
+              }
               copy={{
                 shared: dict.lists.shared,
                 private: dict.lists.private,
                 noDescription: dict.lists.noDescription,
                 placesCount: dict.lists.placesCount,
-                visitedCount: dict.lists.visitedCount
+                visitedCount: dict.lists.visitedCount,
+                rolePrefix: dict.lists.rolePrefix
               }}
             />
           ))}

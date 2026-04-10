@@ -11,6 +11,7 @@ export function ListCard({
   placeCount,
   visitedCount,
   shared,
+  membershipLabel,
   copy
 }: {
   href: string;
@@ -19,12 +20,14 @@ export function ListCard({
   placeCount: number;
   visitedCount: number;
   shared: boolean;
+  membershipLabel?: string;
   copy?: {
     shared: string;
     private: string;
     noDescription: string;
     placesCount: string;
     visitedCount: string;
+    rolePrefix?: string;
   };
 }) {
   const labels = copy ?? {
@@ -32,7 +35,8 @@ export function ListCard({
     private: "Private",
     noDescription: "No description yet.",
     placesCount: "places",
-    visitedCount: "visited"
+    visitedCount: "visited",
+    rolePrefix: "You are"
   };
 
   return (
@@ -56,6 +60,7 @@ export function ListCard({
               <span>{placeCount} {labels.placesCount}</span>
               <span>{visitedCount} {labels.visitedCount}</span>
             </div>
+            {membershipLabel ? <p className="mt-2 text-xs text-[var(--muted-foreground)]">{labels.rolePrefix} {membershipLabel}</p> : null}
           </div>
         </div>
       </Card>

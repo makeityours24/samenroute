@@ -67,11 +67,14 @@ export default async function TodayPage({
               <RoutePreviewCard
                 title={detail.routePlans[0].title ?? dict.today.savedRoute}
                 mapsUrl={detail.routePlans[0].googleMapsUrl}
+                routeHref={`/route/${detail.routePlans[0].id}`}
                 stops={detail.routePlans[0].stops.map((stop) => stop.listPlace.place.name)}
                 copy={{
                   badge: dict.today.routePreview,
                   stops: dict.today.stops,
-                  openMaps: dict.today.openGoogleMaps
+                  openMaps: dict.today.openGoogleMaps,
+                  openProposal: dict.today.openProposal,
+                  helper: dict.today.routePreviewHelper
                 }}
               />
             </section>

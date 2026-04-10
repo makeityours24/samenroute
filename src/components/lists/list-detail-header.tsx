@@ -28,7 +28,8 @@ export function ListDetailHeader({
     visited: string;
     planToday: string;
     actionsHint: string;
-    quickActions: string;
+    todayLabel: string;
+    manageLabel: string;
     edit: string;
     map: string;
     share: string;
@@ -42,7 +43,8 @@ export function ListDetailHeader({
     visited: "Visited",
     planToday: "Today",
     actionsHint: "Start here if you want to use this list today. Editing and sharing stay available, but out of the way.",
-    quickActions: "Quick actions",
+    todayLabel: "Use today",
+    manageLabel: "Manage later",
     edit: "Edit",
     map: "Map",
     share: "Share",
@@ -69,6 +71,7 @@ export function ListDetailHeader({
         </div>
       </div>
       <div className="space-y-2">
+        <p className="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">{labels.todayLabel}</p>
         <Link
           href={(planTodayHref ?? "/today") as AppRoute}
           className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-foreground)] shadow-[var(--shadow)]"
@@ -76,7 +79,7 @@ export function ListDetailHeader({
           <Route className="h-4 w-4" />
           {labels.planToday}
         </Link>
-        <p className="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">{labels.quickActions}</p>
+        <p className="px-1 pt-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">{labels.manageLabel}</p>
         <div className="grid grid-cols-3 gap-2">
           <a
             href={editHref ?? "#list-settings"}

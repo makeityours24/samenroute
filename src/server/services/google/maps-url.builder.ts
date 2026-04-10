@@ -26,7 +26,8 @@ export function buildGoogleMapsDirectionsUrl(input: {
   start?: GoogleMapsWaypoint;
   stops: GoogleMapsWaypoint[];
 }) {
-  const [destination, ...waypoints] = input.stops;
+  const destination = input.stops.at(-1);
+  const waypoints = input.stops.slice(0, -1);
 
   if (!destination) {
     return null;

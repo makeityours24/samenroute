@@ -14,6 +14,7 @@ type Suggestion = {
   categoryLabel: string;
   reason: string;
   detourLabel: string;
+  signals: string[];
 };
 
 export function RouteSuggestionsCard({
@@ -59,6 +60,15 @@ export function RouteSuggestionsCard({
               <p>{suggestion.reason}</p>
               <p>{suggestion.detourLabel}</p>
             </div>
+            {suggestion.signals.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {suggestion.signals.map((signal) => (
+                  <Badge key={signal}>
+                    {signal}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
             <form action={action} className="mt-3">
               <input type="hidden" name="routePlanId" value={routePlanId} />
               <input type="hidden" name="externalSourceId" value={suggestion.externalSourceId} />

@@ -20,7 +20,57 @@ type PlaceItem = {
   sortOrder: number;
   isFavorite: boolean;
   includeInRoute: boolean;
+  createdAt: string;
+  visitedAt?: string | null;
+  visitedByName?: string | null;
 };
+
+function getDaysSince(value: string) {
+  const timestamp = new Date(value).getTime();
+
+  if (!Number.isFinite(timestamp)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor((Date.now() - timestamp) / 86_400_000));
+}
+
+function getSmartSignals(item: PlaceItem, labels: { favorite: string; oldOpen: string; routeCandidate: string; recentlyVisited: string }) {
+  const signals: string[] = [];
+
+  if (item.isFavorite) {
+    signals.push(labels.favorite);
+  }
+
+  if (item.status === "PLANNED" && item.includeInRoute && (item.priority >= 2 || item.isFavorite)) {
+    signals.push(labels.routeCandidate);
+  }
+
+  if (item.visitedAt) {
+    signals.push(labels.recentlyVisited);
+  }
+
+  if (item.status === "PLANNED" && getDaysSince(item.createdAt) >= 14) {
+    signals.push(labels.oldOpen);
+  }
+
+  return signals.slice(0, 3);
+}
+
+function getSmartSortScore(item: PlaceItem) {
+  const ageBonus = item.status === "PLANNED" ? Math.min(getDaysSince(item.createdAt), 30) / 5 : 0;
+  const visitedPenalty = item.status === "VISITED" ? -18 : 0;
+  const skippedPenalty = item.status === "SKIPPED" ? -24 : 0;
+
+  return (
+    (item.includeInRoute ? 12 : 0) +
+    (item.isFavorite ? 10 : 0) +
+    item.priority * 4 +
+    ageBonus +
+    visitedPenalty +
+    skippedPenalty
+  );
+}
 
 export function ListPlacesPanel({
   items,
@@ -33,7 +83,7 @@ export function ListPlacesPanel({
     filters: { all: string; planned: string; visited: string; skipped: string; favorites: string };
     sortLabel: string;
     listHint: string;
-    sorts: { manual: string; recent: string; priority: string };
+    sorts: { manual: string; recent: string; priority: string; smart: string };
     emptyPlaces: string;
     emptyPlacesBody: string;
     emptyFilter: string;
@@ -50,6 +100,11 @@ export function ListPlacesPanel({
     excluded: string;
     priorityLabel: string;
     openActions: string;
+    smartSignalsLabel: string;
+    smartSignalFavorite: string;
+    smartSignalOldOpen: string;
+    smartSignalRouteCandidate: string;
+    smartSignalRecentlyVisited: string;
     status: { planned: string; visited: string; skipped: string };
   };
 }) {
@@ -57,7 +112,7 @@ export function ListPlacesPanel({
     filters: { all: "All", planned: "Planned", visited: "Visited", skipped: "Skipped", favorites: "Favorites" },
     sortLabel: "Sort places",
     listHint: "Handle quick actions here. Open the menu for editing, reordering, and deleting.",
-    sorts: { manual: "Manual order", recent: "Alphabetical", priority: "Priority" },
+    sorts: { manual: "Manual order", recent: "Alphabetical", priority: "Priority", smart: "Smart order" },
     emptyPlaces: "No places yet",
     emptyPlacesBody: "Add your first place to start planning this list.",
     emptyFilter: "Nothing matches this filter",
@@ -74,6 +129,11 @@ export function ListPlacesPanel({
     excluded: "Excluded",
     priorityLabel: "Priority",
     openActions: "Open actions",
+    smartSignalsLabel: "Smart signals",
+    smartSignalFavorite: "Favorite",
+    smartSignalOldOpen: "Open for a while",
+    smartSignalRouteCandidate: "Strong route candidate",
+    smartSignalRecentlyVisited: "Already visited",
     status: { planned: "Planned", visited: "Visited", skipped: "Skipped" }
   };
 
@@ -88,6 +148,7 @@ export function ListPlacesPanel({
     });
 
     return next.sort((left, right) => {
+      if (sort === "smart") return getSmartSortScore(right) - getSmartSortScore(left);
       if (sort === "priority") return right.priority - left.priority;
       if (sort === "recent") return left.name.localeCompare(right.name);
       if (sort === "manual") return left.sortOrder - right.sortOrder;
@@ -105,6 +166,7 @@ export function ListPlacesPanel({
         <PlaceFilters value={filter} onChange={setFilter} labels={labels.filters} />
         <Select aria-label={labels.sortLabel} value={sort} onChange={(event) => setSort(event.target.value)}>
           <option value="manual">{labels.sorts.manual}</option>
+          <option value="smart">{labels.sorts.smart}</option>
           <option value="recent">{labels.sorts.recent}</option>
           <option value="priority">{labels.sorts.priority}</option>
         </Select>
@@ -123,11 +185,18 @@ export function ListPlacesPanel({
               priority={item.priority}
               isFavorite={item.isFavorite}
               includeInRoute={item.includeInRoute}
+              smartSignals={getSmartSignals(item, {
+                favorite: labels.smartSignalFavorite,
+                oldOpen: labels.smartSignalOldOpen,
+                routeCandidate: labels.smartSignalRouteCandidate,
+                recentlyVisited: labels.smartSignalRecentlyVisited
+              })}
               copy={{
                 inRoute: labels.inRoute,
                 excluded: labels.excluded,
                 priorityLabel: labels.priorityLabel,
                 openActions: labels.openActions,
+                smartSignalsLabel: labels.smartSignalsLabel,
                 status: labels.status
               }}
               primaryActions={

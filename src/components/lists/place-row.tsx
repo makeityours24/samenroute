@@ -14,6 +14,7 @@ export function PlaceRow({
   priority,
   isFavorite,
   includeInRoute,
+  smartSignals,
   primaryActions,
   secondaryActions,
   copy
@@ -26,6 +27,7 @@ export function PlaceRow({
   priority: number;
   isFavorite: boolean;
   includeInRoute: boolean;
+  smartSignals?: string[];
   primaryActions?: ReactNode;
   secondaryActions?: ReactNode;
   copy?: {
@@ -33,6 +35,7 @@ export function PlaceRow({
     excluded: string;
     priorityLabel: string;
     openActions: string;
+    smartSignalsLabel: string;
     status: { planned: string; visited: string; skipped: string };
   };
 }) {
@@ -41,6 +44,7 @@ export function PlaceRow({
     excluded: "Excluded",
     priorityLabel: "Priority",
     openActions: "Open actions",
+    smartSignalsLabel: "Smart signals",
     status: { planned: "Planned", visited: "Visited", skipped: "Skipped" }
   };
 
@@ -63,6 +67,18 @@ export function PlaceRow({
         {secondaryActions ? <PlaceActionsMenu title={name} actionLabel={`${labels.openActions}: ${name}`}>{secondaryActions}</PlaceActionsMenu> : null}
       </div>
       {note ? <p className="line-clamp-2 rounded-2xl bg-[var(--surface-subtle)] px-3 py-2 text-sm text-[var(--muted-foreground)]">{note}</p> : null}
+      {smartSignals && smartSignals.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">{labels.smartSignalsLabel}</p>
+          <div className="flex flex-wrap gap-2">
+            {smartSignals.map((signal) => (
+              <Badge key={signal} tone="accent">
+                {signal}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {primaryActions ? <div className="grid min-w-0 grid-cols-1 gap-2">{primaryActions}</div> : null}
     </Card>
   );

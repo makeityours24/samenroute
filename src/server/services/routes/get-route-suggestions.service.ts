@@ -14,6 +14,7 @@ type RouteSuggestion = PlaceLookupResult & {
   categoryLabel: string;
   reason: string;
   detourLabel: string;
+  signals: string[];
 };
 
 type RouteSuggestionsResult = {
@@ -76,6 +77,38 @@ async function getPreferredCategoriesByBehavior(userId: string) {
       .slice(0, 3)
       .map(([categoryName]) => categoryName)
   );
+}
+
+function buildSuggestionContext(input: {
+  categoryLabel: string;
+  city?: string | null;
+  nearestDistance: number;
+  isPreferredCategory: boolean;
+}) {
+  const signals: string[] = [];
+
+  if (input.isPreferredCategory) {
+    signals.push("Sluit aan op wat je vaker bewaart");
+  }
+
+  if (input.nearestDistance < 1.5) {
+    signals.push("Ligt logisch op je route");
+  }
+
+  if (input.city) {
+    signals.push(`Past bij je stops in ${input.city}`);
+  }
+
+  const reason = input.isPreferredCategory
+    ? `Je kiest vaker ${input.categoryLabel.toLowerCase()} en deze suggestie ligt ook logisch op je route.`
+    : input.city
+      ? `Past bij ${input.categoryLabel.toLowerCase()} in ${input.city}.`
+      : `Past bij ${input.categoryLabel.toLowerCase()} onderweg.`;
+
+  return {
+    reason,
+    signals
+  };
 }
 
 export async function getRouteSuggestionsService(user: AuthorizedUser, routePlanId: string): Promise<RouteSuggestionsResult> {
@@ -161,8 +194,14 @@ export async function getRouteSuggestionsService(user: AuthorizedUser, routePlan
             : 0;
 
         const categoryLabel = "category" in place && place.category?.name ? place.category.name : "Onderweg";
-        const reason = place.city ? `Past bij ${categoryLabel.toLowerCase()} in ${place.city}` : `Past bij ${categoryLabel.toLowerCase()} onderweg`;
-        const preferenceBoost = preferredCategories.has(categoryLabel) ? 5 : 0;
+        const isPreferredCategory = preferredCategories.has(categoryLabel);
+        const preferenceBoost = isPreferredCategory ? 5 : 0;
+        const context = buildSuggestionContext({
+          categoryLabel,
+          city: place.city,
+          nearestDistance,
+          isPreferredCategory
+        });
 
         return {
           externalSourceId: place.externalSourceId ?? `local-${place.id}`,
@@ -174,8 +213,9 @@ export async function getRouteSuggestionsService(user: AuthorizedUser, routePlan
           longitude: place.longitude != null ? Number(place.longitude) : undefined,
           googleMapsUrl: place.googleMapsUrl ?? undefined,
           categoryLabel,
-          reason,
+          reason: context.reason,
           detourLabel: formatDetourLabel(nearestDistance),
+          signals: context.signals,
           score: preferenceBoost - nearestDistance
         };
       })
@@ -230,14 +270,21 @@ export async function getRouteSuggestionsService(user: AuthorizedUser, routePlan
             )
           : 0;
 
-      const reason = city ? `Past bij ${categoryLabel.toLowerCase()} in ${city}` : `Past bij ${categoryLabel.toLowerCase()} onderweg`;
-      const preferenceBoost = preferredCategories.has(categoryLabel) ? 5 : 0;
+      const isPreferredCategory = preferredCategories.has(categoryLabel);
+      const preferenceBoost = isPreferredCategory ? 5 : 0;
+      const context = buildSuggestionContext({
+        categoryLabel,
+        city,
+        nearestDistance,
+        isPreferredCategory
+      });
 
       return {
         ...place,
         categoryLabel,
-        reason,
+        reason: context.reason,
         detourLabel: formatDetourLabel(nearestDistance),
+        signals: context.signals,
         score: preferenceBoost - nearestDistance
       };
     })

@@ -98,7 +98,10 @@ export default async function ListDetailPage({
             priority: item.priority,
             sortOrder: item.sortOrder,
             isFavorite: item.isFavorite,
-            includeInRoute: item.includeInRoute
+            includeInRoute: item.includeInRoute,
+            createdAt: item.createdAt.toISOString(),
+            visitedAt: item.visitedAt?.toISOString() ?? null,
+            visitedByName: item.visitedByUser?.name ?? item.visitedByUser?.email ?? null
           }))}
           returnPath={`/lists/${list.id}`}
           copy={dict.listDetail}

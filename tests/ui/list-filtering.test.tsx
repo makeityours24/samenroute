@@ -27,7 +27,8 @@ describe("ListPlacesPanel", () => {
             priority: 1,
             sortOrder: 0,
             isFavorite: false,
-            includeInRoute: true
+            includeInRoute: true,
+            createdAt: "2026-04-01T10:00:00.000Z"
           },
           {
             id: "2",
@@ -38,7 +39,8 @@ describe("ListPlacesPanel", () => {
             priority: 2,
             sortOrder: 1,
             isFavorite: true,
-            includeInRoute: true
+            includeInRoute: true,
+            createdAt: "2026-04-02T10:00:00.000Z"
           }
         ]}
         returnPath="/lists/demo"

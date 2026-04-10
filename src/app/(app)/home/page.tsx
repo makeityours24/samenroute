@@ -1,6 +1,7 @@
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ActiveListCard } from "@/components/home/active-list-card";
 import { ActiveRouteBanner } from "@/components/home/active-route-banner";
+import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
 import { ProgressSummaryCard } from "@/components/home/progress-summary-card";
 import { QuickActions } from "@/components/home/quick-actions";
 import { RecentVisitedList } from "@/components/home/recent-visited-list";
@@ -10,6 +11,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
+import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
 
 const listRepository = new ListRepository();
 
@@ -17,6 +19,7 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   const { dict } = await getDictionary();
   const summary = user ? await listRepository.getHomeSummary(user.id) : null;
+  const behavior = user ? await getUserBehaviorInsightsService(user.id) : null;
   const pendingCount = summary?.listPlaces.filter((item) => item.status === "PLANNED").length ?? 0;
   const visited = summary?.listPlaces.filter((item) => item.status === "VISITED").slice(0, 3) ?? [];
 
@@ -52,6 +55,18 @@ export default async function HomePage() {
             yesLabel={dict.home.yes}
             noLabel={dict.home.no}
           />
+          {behavior ? (
+            <BehaviorInsightsCard
+              title={dict.home.behaviorTitle}
+              subtitle={dict.home.behaviorSubtitle}
+              categories={behavior.topCategories}
+              topCategoriesLabel={dict.home.behaviorTopCategories}
+              favoritesLabel={dict.home.behaviorFavorites}
+              favoritesCount={behavior.favoriteCount}
+              visitsLabel={dict.home.behaviorVisits}
+              visitsCount={behavior.visitedCount}
+            />
+          ) : null}
           {summary.routePlans[0] ? (
             <ActiveRouteBanner
               href={`/route/${summary.routePlans[0].id}`}
@@ -88,6 +103,18 @@ export default async function HomePage() {
             planTodayLabel={dict.home.planToday}
             planTodayHint={dict.home.planTodayHint}
           />
+          {behavior ? (
+            <BehaviorInsightsCard
+              title={dict.home.behaviorTitle}
+              subtitle={dict.home.behaviorSubtitle}
+              categories={behavior.topCategories}
+              topCategoriesLabel={dict.home.behaviorTopCategories}
+              favoritesLabel={dict.home.behaviorFavorites}
+              favoritesCount={behavior.favoriteCount}
+              visitsLabel={dict.home.behaviorVisits}
+              visitsCount={behavior.visitedCount}
+            />
+          ) : null}
         </>
       )}
     </PageContainer>

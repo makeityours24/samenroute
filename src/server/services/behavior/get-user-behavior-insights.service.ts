@@ -1,6 +1,8 @@
 import { ListPlaceRepository } from "@/server/repositories/list-place.repository";
+import { RoutePlanRepository } from "@/server/repositories/route-plan.repository";
 
 const listPlaceRepository = new ListPlaceRepository();
+const routePlanRepository = new RoutePlanRepository();
 
 type ListPlaceInput = {
   id: string;
@@ -20,6 +22,7 @@ export type UserBehaviorInsights = {
   topCategories: string[];
   favoriteCount: number;
   visitedCount: number;
+  recommendedDayStopCount: number;
   recommendedListPlaceIds: string[];
 };
 
@@ -42,11 +45,33 @@ function getDaysSince(value: Date) {
   return Math.max(0, Math.floor((Date.now() - value.getTime()) / 86_400_000));
 }
 
+function getRecommendedDayStopCount(stopCounts: number[]) {
+  if (stopCounts.length === 0) {
+    return 3;
+  }
+
+  const normalized = stopCounts
+    .filter((count) => count > 0)
+    .map((count) => Math.min(Math.max(Math.round(count), 1), 8));
+
+  if (normalized.length === 0) {
+    return 3;
+  }
+
+  const average = normalized.reduce((sum, count) => sum + count, 0) / normalized.length;
+
+  return Math.min(Math.max(Math.round(average), 2), 6);
+}
+
 export async function getUserBehaviorInsightsService(userId: string, currentListPlaces?: ListPlaceInput[]): Promise<UserBehaviorInsights> {
-  const signals = await listPlaceRepository.getUserPreferenceSignals(userId);
+  const [signals, recentStopCounts] = await Promise.all([
+    listPlaceRepository.getUserPreferenceSignals(userId),
+    routePlanRepository.listRecentStopCountsByUser(userId)
+  ]);
   const categoryScores = new Map<string, number>();
   let favoriteCount = 0;
   let visitedCount = 0;
+  const recommendedDayStopCount = getRecommendedDayStopCount(recentStopCounts);
 
   for (const item of signals) {
     if (item.isFavorite) {
@@ -95,13 +120,14 @@ export async function getUserBehaviorInsightsService(userId: string, currentList
       })
       .filter((item) => item.score > 0)
       .sort((left, right) => right.score - left.score)
-      .slice(0, 3)
+      .slice(0, recommendedDayStopCount)
       .map((item) => item.id) ?? [];
 
   return {
     topCategories,
     favoriteCount,
     visitedCount,
+    recommendedDayStopCount,
     recommendedListPlaceIds
   };
 }

@@ -104,7 +104,9 @@ export default async function TodayPage({
             initialMaxStops={hasSuggestedDayPlan ? recommendedStopIds.size : undefined}
             suggestionSummary={
               hasSuggestedDayPlan
-                ? dict.today.smartProposalSummary.replace("{count}", String(recommendedStopIds.size))
+                ? dict.today.smartProposalSummary
+                    .replace("{count}", String(recommendedStopIds.size))
+                    .replace("{pace}", String(behavior?.recommendedDayStopCount ?? recommendedStopIds.size))
                 : undefined
             }
             copy={dict.today}

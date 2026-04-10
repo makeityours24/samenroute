@@ -15,10 +15,12 @@ import { ListRepository } from "@/server/repositories/list.repository";
 import { PlaceRepository } from "@/server/repositories/place.repository";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
-import { addPlaceAction, submitShareListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
+import { Textarea } from "@/components/ui/textarea";
+import { addPlaceAction, submitShareListAction, updateListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
 import { getDictionary } from "@/lib/i18n/server";
 
 const listRepository = new ListRepository();
@@ -53,14 +55,6 @@ export default async function ListDetailPage({
         subtitle={dict.listDetail.topSubtitle}
         backHref="/lists"
         backLabel={dict.common.back}
-        action={
-          <form action={archiveListAction}>
-            <input type="hidden" name="listId" value={list.id} />
-            <Button variant="secondary" type="submit" size="sm">
-              {dict.listDetail.archive}
-            </Button>
-          </form>
-        }
       />
       <ListDetailHeader
         title={list.name}
@@ -100,6 +94,47 @@ export default async function ListDetailPage({
           copy={dict.listDetail}
         />
       </section>
+      <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+        <summary className="cursor-pointer list-none text-[15px] font-semibold">{dict.listDetail.editListSummary}</summary>
+        <div className="mt-4 space-y-4">
+          <SectionHeader title={dict.listDetail.editListTitle} subtitle={dict.listDetail.editListSubtitle} />
+          <form action={updateListAction} className="space-y-3">
+            <input type="hidden" name="listId" value={list.id} />
+            <Input
+              name="name"
+              defaultValue={list.name}
+              placeholder={dict.lists.namePlaceholder}
+              aria-label={dict.lists.nameLabel}
+              required
+            />
+            <Textarea
+              name="description"
+              defaultValue={list.description ?? ""}
+              placeholder={dict.lists.descriptionPlaceholder}
+              aria-label={dict.lists.descriptionLabel}
+            />
+            <Input
+              name="coverColor"
+              defaultValue={list.coverColor ?? ""}
+              placeholder={dict.lists.colorPlaceholder}
+              aria-label={dict.lists.colorLabel}
+            />
+            <Button type="submit" fullWidth>
+              {dict.listDetail.saveList}
+            </Button>
+          </form>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
+            <p className="text-sm font-semibold text-[var(--foreground)]">{dict.listDetail.removeListTitle}</p>
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">{dict.listDetail.removeListBody}</p>
+            <form action={archiveListAction} className="mt-3">
+              <input type="hidden" name="listId" value={list.id} />
+              <Button variant="danger" type="submit" fullWidth>
+                {dict.listDetail.removeListButton}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </details>
       <details id="add-place" className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]" open={Boolean(editingListPlace)}>
         <summary className="cursor-pointer list-none text-[15px] font-semibold">
           {editingListPlace ? dict.listDetail.edit : dict.listDetail.addPlaceSummary}

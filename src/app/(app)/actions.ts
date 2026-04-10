@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { createListService } from "@/server/services/lists/create-list.service";
+import { updateListService } from "@/server/services/lists/update-list.service";
 import { createPlaceService } from "@/server/services/places/create-place.service";
 import { addPlaceToListService } from "@/server/services/list-places/add-place-to-list.service";
 import { generateRoutePlanService } from "@/server/services/routes/generate-route-plan.service";
@@ -42,6 +43,22 @@ export async function createListAction(formData: FormData) {
   });
   revalidatePath("/lists");
   revalidatePath("/home");
+}
+
+export async function updateListAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const listId = String(formData.get("listId") ?? "");
+
+  await updateListService(listId, user, {
+    name: String(formData.get("name") ?? ""),
+    description: String(formData.get("description") ?? "") || undefined,
+    coverColor: String(formData.get("coverColor") ?? "") || undefined
+  });
+
+  revalidatePath(`/lists/${listId}`);
+  revalidatePath("/lists");
+  revalidatePath("/home");
+  redirect(`/lists/${listId}`);
 }
 
 export async function addPlaceAction(formData: FormData) {

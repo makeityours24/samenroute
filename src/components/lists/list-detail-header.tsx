@@ -80,14 +80,14 @@ export function ListDetailHeader({
         <div className="grid grid-cols-3 gap-2">
           <a
             href={editHref ?? "#list-settings"}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]"
           >
             <PencilLine className="h-4 w-4" />
             {labels.edit}
           </a>
           <a
             href="#map"
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]"
           >
             <Map className="h-4 w-4" />
             {labels.map}
@@ -95,7 +95,7 @@ export function ListDetailHeader({
           {shareHref ? (
             <Link
               href={shareHref as AppRoute}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]"
             >
               <Share2 className="h-4 w-4" />
               {labels.share}

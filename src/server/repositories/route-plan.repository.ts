@@ -1,6 +1,24 @@
 import { prisma } from "@/lib/db/prisma";
 
 export class RoutePlanRepository {
+  private routePlanInclude = {
+    list: true,
+    stops: {
+      include: {
+        listPlace: {
+          include: {
+            place: {
+              include: {
+                category: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { stopOrder: "asc" as const }
+    }
+  };
+
   async create(input: {
     listId: string;
     createdByUserId: string;
@@ -28,19 +46,7 @@ export class RoutePlanRepository {
           create: input.stops
         }
       },
-      include: {
-        stops: {
-          include: {
-            listPlace: {
-              include: {
-                place: true
-              }
-            }
-          },
-          orderBy: { stopOrder: "asc" }
-        },
-        list: true
-      }
+      include: this.routePlanInclude
     });
   }
 
@@ -51,18 +57,7 @@ export class RoutePlanRepository {
         status: "ACTIVE"
       },
       include: {
-        stops: {
-          include: {
-            listPlace: {
-              include: {
-                place: true
-              }
-            }
-          },
-          orderBy: {
-            stopOrder: "asc"
-          }
-        }
+        stops: this.routePlanInclude.stops
       },
       orderBy: {
         createdAt: "desc"
@@ -78,19 +73,29 @@ export class RoutePlanRepository {
           OR: [{ ownerUserId: userId }, { members: { some: { userId } } }]
         }
       },
-      include: {
-        list: true,
+      include: this.routePlanInclude
+    });
+  }
+
+  async appendStop(routePlanId: string, input: { listPlaceId: string; googleMapsUrl?: string | null }) {
+    const lastStop = await prisma.routePlanStop.findFirst({
+      where: { routePlanId },
+      orderBy: { stopOrder: "desc" },
+      select: { stopOrder: true }
+    });
+
+    return prisma.routePlan.update({
+      where: { id: routePlanId },
+      data: {
+        googleMapsUrl: input.googleMapsUrl,
         stops: {
-          include: {
-            listPlace: {
-              include: {
-                place: true
-              }
-            }
-          },
-          orderBy: { stopOrder: "asc" }
+          create: {
+            listPlaceId: input.listPlaceId,
+            stopOrder: (lastStop?.stopOrder ?? -1) + 1
+          }
         }
-      }
+      },
+      include: this.routePlanInclude
     });
   }
 

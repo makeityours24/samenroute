@@ -16,6 +16,7 @@ import { archiveListService } from "@/server/services/lists/archive-list.service
 import { duplicateListService } from "@/server/services/lists/duplicate-list.service";
 import { completeRouteStopService } from "@/server/services/routes/complete-route-stop.service";
 import { completeRoutePlanService } from "@/server/services/routes/complete-route-plan.service";
+import { addRouteSuggestionService } from "@/server/services/routes/add-route-suggestion.service";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { updatePlaceService } from "@/server/services/places/update-place.service";
 import { ListPlaceRepository } from "@/server/repositories/list-place.repository";
@@ -259,4 +260,25 @@ export async function completeRoutePlanAction(formData: FormData) {
   revalidatePath("/today");
   revalidatePath("/home");
   redirect("/today");
+}
+
+export async function addRouteSuggestionAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const routePlanId = String(formData.get("routePlanId") ?? "");
+
+  await addRouteSuggestionService(user, {
+    routePlanId,
+    externalSourceId: String(formData.get("externalSourceId") ?? "") || undefined,
+    name: String(formData.get("name") ?? ""),
+    addressLine: String(formData.get("addressLine") ?? "") || undefined,
+    city: String(formData.get("city") ?? "") || undefined,
+    country: String(formData.get("country") ?? "") || undefined,
+    latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,
+    longitude: formData.get("longitude") ? Number(formData.get("longitude")) : undefined,
+    googleMapsUrl: String(formData.get("googleMapsUrl") ?? "") || undefined
+  });
+
+  revalidatePath(`/route/${routePlanId}`);
+  revalidatePath("/today");
+  revalidatePath("/home");
 }

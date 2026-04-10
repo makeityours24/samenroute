@@ -4,9 +4,11 @@ import { vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 vi.mock("@/app/(app)/actions", () => ({
+  deleteListPlaceAction: vi.fn(),
   markSkippedAction: vi.fn(),
   markVisitedAction: vi.fn(),
-  reorderListPlaceAction: vi.fn()
+  reorderListPlaceAction: vi.fn(),
+  toggleFavoriteListPlaceAction: vi.fn()
 }));
 
 import { ListPlacesPanel } from "@/components/lists/list-places-panel";

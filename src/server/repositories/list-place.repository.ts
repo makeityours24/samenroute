@@ -52,6 +52,21 @@ export class ListPlaceRepository {
     });
   }
 
+  async findByListAndPlace(listId: string, placeId: string) {
+    return prisma.listPlace.findUnique({
+      where: {
+        listId_placeId: {
+          listId,
+          placeId
+        }
+      },
+      include: {
+        place: true,
+        list: true
+      }
+    });
+  }
+
   async markVisited(listPlaceId: string, userId: string) {
     return prisma.listPlace.update({
       where: { id: listPlaceId },
@@ -106,6 +121,25 @@ export class ListPlaceRepository {
       include: {
         place: true
       }
+    });
+  }
+
+  async getUserPreferenceSignals(userId: string) {
+    return prisma.listPlace.findMany({
+      where: {
+        list: {
+          OR: [{ ownerUserId: userId }, { members: { some: { userId } } }]
+        }
+      },
+      include: {
+        place: {
+          include: {
+            category: true
+          }
+        }
+      },
+      orderBy: [{ updatedAt: "desc" }],
+      take: 80
     });
   }
 }

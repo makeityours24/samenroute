@@ -6,25 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function SignInForm({
-  hasGoogle,
-  hasGithub,
   enableDemoLogin,
   copy
 }: {
-  hasGoogle: boolean;
-  hasGithub: boolean;
   enableDemoLogin: boolean;
   copy: {
     emailPlaceholder: string;
     emailButton: string;
     sending: string;
-    google: string;
-    github: string;
     demoTitle: string;
     demoBody: string;
     demoAnna: string;
     demoBas: string;
     magicLinkSent: string;
+    magicLinkCheckInbox: string;
+    magicLinkRetryHint: string;
+    editEmail: string;
     magicLinkError: string;
     demoOpenError: string;
   };
@@ -32,10 +29,17 @@ export function SignInForm({
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
   async function requestMagicLink(nextEmail: string) {
+    if (pending) {
+      return;
+    }
+
     setPending(true);
     setMessage(null);
+    setStatus("idle");
     const result = await signIn("email", {
       email: nextEmail,
       redirect: false,
@@ -44,12 +48,15 @@ export function SignInForm({
 
     if (result?.error) {
       setMessage(copy.magicLinkError);
+      setStatus("error");
       setPending(false);
       return;
     }
 
     setPending(false);
     setMessage(copy.magicLinkSent);
+    setSentEmail(nextEmail);
+    setStatus("success");
   }
 
   return (
@@ -67,11 +74,39 @@ export function SignInForm({
           placeholder={copy.emailPlaceholder}
           required
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          disabled={status === "success"}
+          onChange={(event) => {
+            setEmail(event.target.value);
+
+            if (status !== "idle") {
+              setStatus("idle");
+              setMessage(null);
+            }
+          }}
         />
-        <Button type="submit" fullWidth disabled={pending}>
-          {pending ? copy.sending : copy.emailButton}
-        </Button>
+        {status === "success" ? (
+          <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
+            <p className="text-sm font-semibold text-[var(--foreground)]">{copy.magicLinkCheckInbox}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">{sentEmail ?? email}</p>
+            <p className="text-xs leading-5 text-[var(--muted-foreground)]">{copy.magicLinkRetryHint}</p>
+            <Button
+              type="button"
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                setStatus("idle");
+                setMessage(null);
+                setSentEmail(null);
+              }}
+            >
+              {copy.editEmail}
+            </Button>
+          </div>
+        ) : (
+          <Button type="submit" fullWidth disabled={pending}>
+            {pending ? copy.sending : copy.emailButton}
+          </Button>
+        )}
       </form>
       {enableDemoLogin ? (
         <div className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
@@ -93,17 +128,7 @@ export function SignInForm({
           </div>
         </div>
       ) : null}
-      {hasGoogle ? (
-        <Button variant="primary" fullWidth onClick={() => signIn("google", { callbackUrl: "/home" })}>
-          {copy.google}
-        </Button>
-      ) : null}
-      {hasGithub ? (
-        <Button variant="secondary" fullWidth onClick={() => signIn("github", { callbackUrl: "/home" })}>
-          {copy.github}
-        </Button>
-      ) : null}
-      {message ? <p className="text-sm text-[var(--muted-foreground)]">{message}</p> : null}
+      {message && status !== "success" ? <p className="text-sm text-[var(--muted-foreground)]">{message}</p> : null}
     </div>
   );
 }

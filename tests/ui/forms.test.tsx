@@ -1,10 +1,17 @@
 // @vitest-environment jsdom
 
+import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Button } from "@/components/ui/button";
 import { CreateListForm } from "@/components/lists/create-list-form";
 import { PlaceForm } from "@/components/places/place-form";
 import { PlannerForm } from "@/components/today/planner-form";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: vi.fn()
+  })
+}));
 
 describe("core forms", () => {
   it("renders the list creation form fields", () => {

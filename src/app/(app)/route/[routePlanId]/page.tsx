@@ -3,13 +3,15 @@ import { CurrentStopCard } from "@/components/route-session/current-stop-card";
 import { NextStopCard } from "@/components/route-session/next-stop-card";
 import { RouteProgressBar } from "@/components/route-session/route-progress";
 import { RouteSessionActions } from "@/components/route-session/route-session-actions";
+import { RouteSuggestionsCard } from "@/components/route-session/route-suggestions-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageContainer } from "@/components/ui/page-container";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import { RoutePlanRepository } from "@/server/repositories/route-plan.repository";
-import { completeRoutePlanAction, completeRouteStopAction, markSkippedAction } from "@/app/(app)/actions";
+import { getRouteSuggestionsService } from "@/server/services/routes/get-route-suggestions.service";
+import { addRouteSuggestionAction, completeRoutePlanAction, completeRouteStopAction, markSkippedAction } from "@/app/(app)/actions";
 
 const routePlanRepository = new RoutePlanRepository();
 
@@ -22,6 +24,8 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
   if (!routePlan) {
     notFound();
   }
+
+  const suggestionResult = user ? await getRouteSuggestionsService(user, routePlanId) : { suggestions: [] };
 
   const currentStop = routePlan.stops.find((stop) => !stop.isCompleted);
   const completedCount = routePlan.stops.filter((stop) => stop.isCompleted).length;
@@ -74,6 +78,17 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
             </a>
           </Card>
         ) : null}
+        <RouteSuggestionsCard
+          routePlanId={routePlan.id}
+          suggestions={suggestionResult.suggestions}
+          action={addRouteSuggestionAction}
+          copy={{
+            badge: dict.route.suggestionsBadge,
+            title: dict.route.suggestionsTitle,
+            subtitle: dict.route.suggestionsSubtitle,
+            add: dict.route.addSuggestion
+          }}
+        />
       </section>
       <RouteSessionActions>
         <div className="space-y-1 px-1 pb-1 text-center">

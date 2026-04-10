@@ -42,12 +42,7 @@ export default async function SignInPage({
           <h1 className="text-2xl font-semibold">{dict.auth.title}</h1>
           <p className="text-sm text-[var(--muted-foreground)]">{dict.auth.body}</p>
         </div>
-        <SignInForm
-          hasGoogle={Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)}
-          hasGithub={Boolean(env.GITHUB_ID && env.GITHUB_SECRET)}
-          enableDemoLogin={process.env.NODE_ENV !== "production"}
-          copy={dict.auth}
-        />
+        <SignInForm enableDemoLogin={process.env.NODE_ENV !== "production"} copy={dict.auth} />
         {process.env.NODE_ENV !== "production" && env.AUTH_URL.includes("localhost") ? (
           <div className="flex flex-col gap-2 text-sm">
             <a href="/api/dev/open-latest-magic-link" className="text-[var(--accent)]">
@@ -58,6 +53,14 @@ export default async function SignInPage({
             </a>
           </div>
         ) : null}
+        <div className="flex items-center justify-center gap-4 text-xs text-[var(--muted-foreground)]">
+          <a href="/privacy" className="font-semibold text-[var(--accent)]">
+            Privacy
+          </a>
+          <a href="/voorwaarden" className="font-semibold text-[var(--accent)]">
+            Voorwaarden
+          </a>
+        </div>
       </Card>
     </PageContainer>
   );

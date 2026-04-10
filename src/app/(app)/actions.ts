@@ -277,6 +277,8 @@ export async function submitShareListAction(
       };
     }
 
+    console.error("submitShareListAction failed", error);
+
     return {
       status: "error",
       message: "Er ging iets mis bij het delen van de lijst."

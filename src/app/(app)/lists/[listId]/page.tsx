@@ -62,6 +62,7 @@ export default async function ListDetailPage({
         plannedCount={plannedCount}
         visitedCount={visitedCount}
         shareHref={`/lists/${list.id}/members`}
+        editHref="#list-settings"
         copy={{
           headerBadge: dict.listDetail.headerBadge,
           noDescription: dict.listDetail.noDescription,
@@ -69,6 +70,8 @@ export default async function ListDetailPage({
           visited: dict.listDetail.visited,
           planToday: dict.listDetail.planToday,
           actionsHint: dict.listDetail.actionsHint,
+          quickActions: dict.listDetail.quickActions,
+          edit: dict.listDetail.editListCta,
           map: dict.listDetail.mapTitle,
           share: dict.listDetail.sharedMembers
         }}
@@ -94,7 +97,10 @@ export default async function ListDetailPage({
           copy={dict.listDetail}
         />
       </section>
-      <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+      <details
+        id="list-settings"
+        className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+      >
         <summary className="cursor-pointer list-none text-[15px] font-semibold">{dict.listDetail.editListSummary}</summary>
         <div className="mt-4 space-y-4">
           <SectionHeader title={dict.listDetail.editListTitle} subtitle={dict.listDetail.editListSubtitle} />

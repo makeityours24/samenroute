@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Route as AppRoute } from "next";
-import { Map, Route, Share2 } from "lucide-react";
+import { Map, PencilLine, Route, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -10,6 +10,7 @@ export function ListDetailHeader({
   plannedCount,
   visitedCount,
   shareHref,
+  editHref,
   copy,
   planTodayHref
 }: {
@@ -18,6 +19,7 @@ export function ListDetailHeader({
   plannedCount: number;
   visitedCount: number;
   shareHref: string;
+  editHref?: string;
   planTodayHref?: string;
   copy?: {
     headerBadge: string;
@@ -26,6 +28,8 @@ export function ListDetailHeader({
     visited: string;
     planToday: string;
     actionsHint: string;
+    quickActions: string;
+    edit: string;
     map: string;
     share: string;
   };
@@ -36,7 +40,9 @@ export function ListDetailHeader({
     planned: "Planned",
     visited: "Visited",
     planToday: "Today",
-    actionsHint: "Start with today. Use map and sharing only when you need extra context.",
+    actionsHint: "Start here if you want to use this list today. Editing and sharing stay available, but out of the way.",
+    quickActions: "Quick actions",
+    edit: "Edit",
     map: "Map",
     share: "Share"
   };
@@ -68,7 +74,15 @@ export function ListDetailHeader({
           <Route className="h-4 w-4" />
           {labels.planToday}
         </Link>
-        <div className="grid grid-cols-2 gap-2">
+        <p className="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">{labels.quickActions}</p>
+        <div className="grid grid-cols-3 gap-2">
+          <a
+            href={editHref ?? "#list-settings"}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+          >
+            <PencilLine className="h-4 w-4" />
+            {labels.edit}
+          </a>
           <a
             href="#map"
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"

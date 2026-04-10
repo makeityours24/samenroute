@@ -31,6 +31,7 @@ export function ListDetailHeader({
     todayLabel: string;
     manageLabel: string;
     edit: string;
+    editDisabled?: string;
     map: string;
     share: string;
     shareDisabled?: string;
@@ -46,6 +47,7 @@ export function ListDetailHeader({
     todayLabel: "Use today",
     manageLabel: "Manage later",
     edit: "Edit",
+    editDisabled: "View",
     map: "Map",
     share: "Share",
     shareDisabled: "Members"
@@ -81,13 +83,20 @@ export function ListDetailHeader({
         </Link>
         <p className="px-1 pt-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">{labels.manageLabel}</p>
         <div className="grid grid-cols-3 gap-2">
-          <a
-            href={editHref ?? "#list-settings"}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]"
-          >
-            <PencilLine className="h-4 w-4" />
-            {labels.edit}
-          </a>
+          {editHref ? (
+            <a
+              href={editHref}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]"
+            >
+              <PencilLine className="h-4 w-4" />
+              {labels.edit}
+            </a>
+          ) : (
+            <div className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]">
+              <PencilLine className="h-4 w-4" />
+              {labels.editDisabled ?? labels.edit}
+            </div>
+          )}
           <a
             href="#map"
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]"

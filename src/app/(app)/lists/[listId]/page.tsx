@@ -77,6 +77,7 @@ export default async function ListDetailPage({
           todayLabel: dict.listDetail.todayLabel,
           manageLabel: dict.listDetail.manageLabel,
           edit: dict.listDetail.editListCta,
+          editDisabled: dict.listDetail.viewOnlyCta,
           map: dict.listDetail.mapTitle,
           share: dict.listDetail.sharedMembers,
           shareDisabled: dict.listDetail.sharedViewOnly

@@ -38,6 +38,19 @@ export class ListInviteRepository {
     });
   }
 
+  async markAcceptedByListAndEmail(input: { listId: string; email: string }) {
+    await prisma.listInvite.updateMany({
+      where: {
+        listId: input.listId,
+        email: input.email,
+        acceptedAt: null
+      },
+      data: {
+        acceptedAt: new Date()
+      }
+    });
+  }
+
   async markAccepted(inviteIds: string[]) {
     if (inviteIds.length === 0) {
       return;

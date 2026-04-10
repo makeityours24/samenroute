@@ -22,6 +22,11 @@ export async function shareListService(listId: string, user: AuthorizedUser, inp
   });
 
   if (invitee) {
+    await listInviteRepository.markAcceptedByListAndEmail({
+      listId,
+      email
+    });
+
     const existing = await prisma.listMember.findUnique({
       where: {
         listId_userId: {

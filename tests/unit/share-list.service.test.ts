@@ -40,6 +40,10 @@ describe("shareListService", () => {
       userId: "user_2",
       role: "EDITOR"
     });
+    expect(ListInviteRepository.prototype.markAcceptedByListAndEmail).toHaveBeenCalledWith({
+      listId: "list_1",
+      email: "new@example.com"
+    });
     expect(result.kind).toBe("member_added");
   });
 
@@ -67,5 +71,10 @@ describe("shareListService", () => {
     await expect(
       shareListService("list_1", { id: "owner", email: "owner@example.com" }, { email: "new@example.com", role: "VIEWER" })
     ).rejects.toThrow("already has access");
+
+    expect(ListInviteRepository.prototype.markAcceptedByListAndEmail).toHaveBeenCalledWith({
+      listId: "list_1",
+      email: "new@example.com"
+    });
   });
 });

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CurrentStopCard } from "@/components/route-session/current-stop-card";
 import { NextStopCard } from "@/components/route-session/next-stop-card";
@@ -53,37 +52,7 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
   return (
     <PageContainer className="justify-between gap-4 pt-2">
       <section className="space-y-4">
-        <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow)]">
-          <div className="space-y-2 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{dict.route.sessionLabel}</p>
-            <h1 className="text-2xl font-semibold">{dict.route.proposalTitle}</h1>
-            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.proposalBody}</p>
-          </div>
-          <div className="rounded-2xl bg-white/80 p-3 text-center">
-            <p className="text-xs text-[var(--muted-foreground)]">{dict.route.proposalSummaryLabel}</p>
-            <p className="mt-1 text-lg font-semibold">
-              {routePlan.stops.length} {dict.route.proposalSummaryStops}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <Link
-              href={`/today?listId=${routePlan.listId}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
-            >
-              {dict.route.adjustRoute}
-            </Link>
-            {routePlan.googleMapsUrl ? (
-              <a
-                href={routePlan.googleMapsUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-foreground)] shadow-[var(--shadow)]"
-              >
-                {dict.route.followRoute}
-              </a>
-            ) : null}
-          </div>
-        </Card>
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{dict.route.sessionLabel}</p>
         <p className="text-center text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.sessionHint}</p>
         <RouteProgressBar current={completedCount + 1} total={routePlan.stops.length} label={dict.route.progress} />
         <CurrentStopCard
@@ -94,7 +63,7 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
         />
         <NextStopCard name={nextStop?.listPlace.place.name ?? dict.route.lastStop} label={dict.route.nextStop} helper={dict.route.nextStopHint} />
         {routePlan.googleMapsUrl ? (
-          <Card className="space-y-3 p-4">
+          <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{dict.route.stepOneLabel}</p>
               <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.stepOneHint}</p>
@@ -103,7 +72,7 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
               href={routePlan.googleMapsUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+              className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-[var(--accent)] px-5 text-base font-semibold text-[var(--accent-foreground)] shadow-[var(--shadow)]"
             >
               {dict.route.openGoogleMaps}
             </a>

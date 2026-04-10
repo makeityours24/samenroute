@@ -18,7 +18,7 @@ export function ListDetailHeader({
   description?: string | null;
   plannedCount: number;
   visitedCount: number;
-  shareHref: string;
+  shareHref?: string;
   editHref?: string;
   planTodayHref?: string;
   copy?: {
@@ -32,6 +32,7 @@ export function ListDetailHeader({
     edit: string;
     map: string;
     share: string;
+    shareDisabled?: string;
   };
 }) {
   const labels = copy ?? {
@@ -44,7 +45,8 @@ export function ListDetailHeader({
     quickActions: "Quick actions",
     edit: "Edit",
     map: "Map",
-    share: "Share"
+    share: "Share",
+    shareDisabled: "Members"
   };
 
   return (
@@ -90,13 +92,20 @@ export function ListDetailHeader({
             <Map className="h-4 w-4" />
             {labels.map}
           </a>
-          <Link
-            href={shareHref as AppRoute}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
-          >
-            <Share2 className="h-4 w-4" />
-            {labels.share}
-          </Link>
+          {shareHref ? (
+            <Link
+              href={shareHref as AppRoute}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+            >
+              <Share2 className="h-4 w-4" />
+              {labels.share}
+            </Link>
+          ) : (
+            <div className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-sm font-semibold text-[var(--muted-foreground)]">
+              <Share2 className="h-4 w-4" />
+              {labels.shareDisabled ?? labels.share}
+            </div>
+          )}
         </div>
         <p className="px-1 text-xs leading-5 text-[var(--muted-foreground)]">{labels.actionsHint}</p>
       </div>

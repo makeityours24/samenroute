@@ -22,6 +22,7 @@ import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { addPlaceAction, submitShareListAction, updateListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
 import { getDictionary } from "@/lib/i18n/server";
+import { ListMemberRole } from "@/server/domain/enums";
 
 const listRepository = new ListRepository();
 const placeRepository = new PlaceRepository();
@@ -47,6 +48,9 @@ export default async function ListDetailPage({
   const plannedCount = list.listPlaces.filter((item) => item.status === "PLANNED").length;
   const visitedCount = list.listPlaces.filter((item) => item.status === "VISITED").length;
   const editingListPlace = query?.edit ? list.listPlaces.find((item) => item.id === query.edit) : null;
+  const membershipRole = list.ownerUserId === user?.id ? ListMemberRole.OWNER : (list.members.find((member) => member.userId === user?.id)?.role ?? undefined);
+  const canMutateList = membershipRole === ListMemberRole.OWNER || membershipRole === ListMemberRole.EDITOR;
+  const canManageMembers = membershipRole === ListMemberRole.OWNER;
 
   return (
     <PageContainer className="gap-4">
@@ -61,8 +65,8 @@ export default async function ListDetailPage({
         description={list.description}
         plannedCount={plannedCount}
         visitedCount={visitedCount}
-        shareHref={`/lists/${list.id}/members`}
-        editHref="#list-settings"
+        shareHref={canManageMembers ? `/lists/${list.id}/members` : undefined}
+        editHref={canMutateList ? "#list-settings" : undefined}
         copy={{
           headerBadge: dict.listDetail.headerBadge,
           noDescription: dict.listDetail.noDescription,
@@ -73,7 +77,8 @@ export default async function ListDetailPage({
           quickActions: dict.listDetail.quickActions,
           edit: dict.listDetail.editListCta,
           map: dict.listDetail.mapTitle,
-          share: dict.listDetail.sharedMembers
+          share: dict.listDetail.sharedMembers,
+          shareDisabled: dict.listDetail.sharedViewOnly
         }}
         planTodayHref={`/today?listId=${list.id}`}
       />
@@ -97,51 +102,54 @@ export default async function ListDetailPage({
           copy={dict.listDetail}
         />
       </section>
-      <details
-        id="list-settings"
-        className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
-      >
-        <summary className="cursor-pointer list-none text-[15px] font-semibold">{dict.listDetail.editListSummary}</summary>
-        <div className="mt-4 space-y-4">
-          <SectionHeader title={dict.listDetail.editListTitle} subtitle={dict.listDetail.editListSubtitle} />
-          <form action={updateListAction} className="space-y-3">
-            <input type="hidden" name="listId" value={list.id} />
-            <Input
-              name="name"
-              defaultValue={list.name}
-              placeholder={dict.lists.namePlaceholder}
-              aria-label={dict.lists.nameLabel}
-              required
-            />
-            <Textarea
-              name="description"
-              defaultValue={list.description ?? ""}
-              placeholder={dict.lists.descriptionPlaceholder}
-              aria-label={dict.lists.descriptionLabel}
-            />
-            <Input
-              name="coverColor"
-              defaultValue={list.coverColor ?? ""}
-              placeholder={dict.lists.colorPlaceholder}
-              aria-label={dict.lists.colorLabel}
-            />
-            <Button type="submit" fullWidth>
-              {dict.listDetail.saveList}
-            </Button>
-          </form>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
-            <p className="text-sm font-semibold text-[var(--foreground)]">{dict.listDetail.removeListTitle}</p>
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">{dict.listDetail.removeListBody}</p>
-            <form action={archiveListAction} className="mt-3">
+      {canMutateList ? (
+        <details
+          id="list-settings"
+          className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+        >
+          <summary className="cursor-pointer list-none text-[15px] font-semibold">{dict.listDetail.editListSummary}</summary>
+          <div className="mt-4 space-y-4">
+            <SectionHeader title={dict.listDetail.editListTitle} subtitle={dict.listDetail.editListSubtitle} />
+            <form action={updateListAction} className="space-y-3">
               <input type="hidden" name="listId" value={list.id} />
-              <Button variant="danger" type="submit" fullWidth>
-                {dict.listDetail.removeListButton}
+              <Input
+                name="name"
+                defaultValue={list.name}
+                placeholder={dict.lists.namePlaceholder}
+                aria-label={dict.lists.nameLabel}
+                required
+              />
+              <Textarea
+                name="description"
+                defaultValue={list.description ?? ""}
+                placeholder={dict.lists.descriptionPlaceholder}
+                aria-label={dict.lists.descriptionLabel}
+              />
+              <Input
+                name="coverColor"
+                defaultValue={list.coverColor ?? ""}
+                placeholder={dict.lists.colorPlaceholder}
+                aria-label={dict.lists.colorLabel}
+              />
+              <Button type="submit" fullWidth>
+                {dict.listDetail.saveList}
               </Button>
             </form>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
+              <p className="text-sm font-semibold text-[var(--foreground)]">{dict.listDetail.removeListTitle}</p>
+              <p className="mt-1 text-sm text-[var(--muted-foreground)]">{dict.listDetail.removeListBody}</p>
+              <form action={archiveListAction} className="mt-3">
+                <input type="hidden" name="listId" value={list.id} />
+                <Button variant="danger" type="submit" fullWidth>
+                  {dict.listDetail.removeListButton}
+                </Button>
+              </form>
+            </div>
           </div>
-        </div>
-      </details>
-      <details id="add-place" className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]" open={Boolean(editingListPlace)}>
+        </details>
+      ) : null}
+      {canMutateList ? (
+        <details id="add-place" className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]" open={Boolean(editingListPlace)}>
         <summary className="cursor-pointer list-none text-[15px] font-semibold">
           {editingListPlace ? dict.listDetail.edit : dict.listDetail.addPlaceSummary}
         </summary>
@@ -194,7 +202,8 @@ export default async function ListDetailPage({
             }
           />
         </div>
-      </details>
+        </details>
+      ) : null}
       <section className="space-y-3">
         <SectionHeader title={dict.listDetail.mapTitle} subtitle={dict.listDetail.mapSubtitle} />
         {list.listPlaces.length > 0 ? (
@@ -230,9 +239,11 @@ export default async function ListDetailPage({
             title={dict.listDetail.membersTitle}
             subtitle={dict.listDetail.membersSubtitle}
             action={
+              canManageMembers ? (
               <Link href={`/lists/${list.id}/members`} className="text-sm font-semibold text-[var(--accent)]">
                 {dict.listDetail.openMembers}
               </Link>
+              ) : null
             }
           />
           {list.members.slice(0, 3).map((member) => (
@@ -243,19 +254,21 @@ export default async function ListDetailPage({
               labels={{ owner: dict.members.owner, editor: dict.members.editor, viewer: dict.members.viewer }}
             />
           ))}
-          <InviteMemberForm
-            action={submitShareListAction}
-            listId={list.id}
-            submitLabel={dict.listDetail.inviteMember}
-            copy={{
-              emailPlaceholder: dict.members.emailPlaceholder,
-              emailLabel: dict.members.emailLabel,
-              roleLabel: dict.members.roleLabel,
-              viewer: dict.members.viewer,
-              editor: dict.members.editor,
-              successMessage: "Uitnodiging verstuurd."
-            }}
-          />
+          {canManageMembers ? (
+            <InviteMemberForm
+              action={submitShareListAction}
+              listId={list.id}
+              submitLabel={dict.listDetail.inviteMember}
+              copy={{
+                emailPlaceholder: dict.members.emailPlaceholder,
+                emailLabel: dict.members.emailLabel,
+                roleLabel: dict.members.roleLabel,
+                viewer: dict.members.viewer,
+                editor: dict.members.editor,
+                successMessage: "Uitnodiging verstuurd."
+              }}
+            />
+          ) : null}
         </div>
       </details>
       <StickyActionBar>

@@ -10,6 +10,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import { ListRepository } from "@/server/repositories/list.repository";
+import { ListMemberRole } from "@/server/domain/enums";
 
 const listRepository = new ListRepository();
 
@@ -22,6 +23,9 @@ export default async function MembersPage({ params }: { params: Promise<{ listId
   if (!list) {
     notFound();
   }
+
+  const membershipRole = list.ownerUserId === user?.id ? ListMemberRole.OWNER : (list.members.find((member) => member.userId === user?.id)?.role ?? undefined);
+  const canManageMembers = membershipRole === ListMemberRole.OWNER;
 
   return (
     <PageContainer>
@@ -41,23 +45,25 @@ export default async function MembersPage({ params }: { params: Promise<{ listId
           <EmptyState title={dict.members.empty} description={dict.members.emptyBody} />
         )}
       </section>
-      <Card className="space-y-4">
-        <SectionHeader title={dict.members.inviteTitle} subtitle={dict.members.inviteSubtitle} />
-        <InviteMemberForm
-          action={submitShareListAction}
-          listId={list.id}
-          submitLabel={dict.members.sendInvite}
-          stickySubmit
-          copy={{
-            emailPlaceholder: dict.members.emailPlaceholder,
-            emailLabel: dict.members.emailLabel,
-            roleLabel: dict.members.roleLabel,
-            viewer: dict.members.viewer,
-            editor: dict.members.editor,
-            successMessage: "Uitnodiging verstuurd."
-          }}
-        />
-      </Card>
+      {canManageMembers ? (
+        <Card className="space-y-4">
+          <SectionHeader title={dict.members.inviteTitle} subtitle={dict.members.inviteSubtitle} />
+          <InviteMemberForm
+            action={submitShareListAction}
+            listId={list.id}
+            submitLabel={dict.members.sendInvite}
+            stickySubmit
+            copy={{
+              emailPlaceholder: dict.members.emailPlaceholder,
+              emailLabel: dict.members.emailLabel,
+              roleLabel: dict.members.roleLabel,
+              viewer: dict.members.viewer,
+              editor: dict.members.editor,
+              successMessage: "Uitnodiging verstuurd."
+            }}
+          />
+        </Card>
+      ) : null}
     </PageContainer>
   );
 }

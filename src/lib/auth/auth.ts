@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import Email from "next-auth/providers/email";
@@ -9,8 +9,10 @@ import type { NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/env/env";
+import { acceptPendingListInvitesService } from "@/server/services/lists/accept-pending-list-invites.service";
 
 const devEmailDir = path.join(process.cwd(), ".tmp", "emails");
+const MAGIC_LINK_MAX_AGE_SECONDS = 60 * 60 * 24;
 
 function getIsSecureAuth() {
   return new URL(env.AUTH_URL).protocol === "https:";
@@ -36,6 +38,71 @@ async function storeMagicLink(email: string, url: string) {
   await fs.writeFile(filename, JSON.stringify({ email, url, createdAt: new Date().toISOString() }, null, 2), "utf8");
 }
 
+async function deliverMagicLinkEmail(params: {
+  email: string;
+  url: string;
+  subject: string;
+  text: string;
+  html: string;
+}) {
+  if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD) {
+    await storeMagicLink(params.email, params.url);
+    return;
+  }
+
+  const transport = await import("nodemailer").then((module) =>
+    module.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      auth: {
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASSWORD
+      }
+    })
+  );
+
+  await transport.sendMail({
+    to: params.email,
+    from: env.EMAIL_FROM,
+    subject: params.subject,
+    text: params.text,
+    html: params.html
+  });
+}
+
+export async function sendEmailMagicLink(input: {
+  email: string;
+  callbackPath: string;
+  subject: string;
+  intro: string;
+}) {
+  const email = input.email.trim().toLowerCase();
+  const token = randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + MAGIC_LINK_MAX_AGE_SECONDS * 1000);
+  const callbackUrl = new URL(input.callbackPath, env.APP_BASE_URL).toString();
+  const url = new URL("/api/auth/callback/email", env.AUTH_URL);
+
+  url.searchParams.set("callbackUrl", callbackUrl);
+  url.searchParams.set("token", token);
+  url.searchParams.set("email", email);
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: email,
+      token: createHash("sha256").update(`${token}${env.AUTH_SECRET}`).digest("hex"),
+      expires
+    }
+  });
+
+  await deliverMagicLinkEmail({
+    email,
+    url: url.toString(),
+    subject: input.subject,
+    text: `${input.intro}\n\nOpen this magic link: ${url.toString()}`,
+    html: `<p>${input.intro}</p><p><a href="${url.toString()}">${url.toString()}</a></p>`
+  });
+}
+
 function createProviders() {
   const providers: NonNullable<NextAuthOptions["providers"]> = [
     Email({
@@ -52,25 +119,9 @@ function createProviders() {
             }
           : undefined,
       async sendVerificationRequest(params: { identifier: string; url: string }) {
-        if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD) {
-          await storeMagicLink(params.identifier, params.url);
-          return;
-        }
-
-        const transport = await import("nodemailer").then((module) =>
-          module.createTransport({
-            host: env.SMTP_HOST,
-            port: env.SMTP_PORT,
-            auth: {
-              user: env.SMTP_USER,
-              pass: env.SMTP_PASSWORD
-            }
-          })
-        );
-
-        await transport.sendMail({
-          to: params.identifier,
-          from: env.EMAIL_FROM,
+        await deliverMagicLinkEmail({
+          email: params.identifier,
+          url: params.url,
           subject: "Sign in to SamenRoute",
           text: `Open this magic link to sign in: ${params.url}`,
           html: `<p>Open this magic link to sign in:</p><p><a href="${params.url}">${params.url}</a></p>`
@@ -121,6 +172,22 @@ export const authOptions: NextAuthOptions = {
       }
 
       return session;
+    }
+  },
+  events: {
+    async signIn({ user }) {
+      if (!user.email || !user.id) {
+        return;
+      }
+
+      try {
+        await acceptPendingListInvitesService({
+          userId: user.id,
+          email: user.email
+        });
+      } catch (error) {
+        console.error("Failed to accept pending list invites", error);
+      }
     }
   }
 };

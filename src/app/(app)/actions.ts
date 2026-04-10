@@ -20,6 +20,7 @@ import { addRouteSuggestionService } from "@/server/services/routes/add-route-su
 import { ListRepository } from "@/server/repositories/list.repository";
 import { updatePlaceService } from "@/server/services/places/update-place.service";
 import { ListPlaceRepository } from "@/server/repositories/list-place.repository";
+import { AppError } from "@/server/services/errors";
 
 const listRepository = new ListRepository();
 const listPlaceRepository = new ListPlaceRepository();
@@ -224,6 +225,46 @@ export async function shareListAction(formData: FormData) {
     role: String(formData.get("role") ?? "VIEWER")
   });
   revalidatePath(`/lists/${listId}`);
+}
+
+export type ShareListFormState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+};
+
+export async function submitShareListAction(
+  _previousState: ShareListFormState,
+  formData: FormData
+): Promise<ShareListFormState> {
+  try {
+    const user = await requireUserOrThrow();
+    const listId = String(formData.get("listId") ?? "");
+
+    const result = await shareListService(listId, user, {
+      email: String(formData.get("email") ?? ""),
+      role: String(formData.get("role") ?? "VIEWER")
+    });
+
+    revalidatePath(`/lists/${listId}`);
+    revalidatePath(`/lists/${listId}/members`);
+
+    return {
+      status: "success",
+      message: result.message
+    };
+  } catch (error) {
+    if (error instanceof AppError) {
+      return {
+        status: "error",
+        message: error.message
+      };
+    }
+
+    return {
+      status: "error",
+      message: "Er ging iets mis bij het delen van de lijst."
+    };
+  }
 }
 
 export async function archiveListAction(formData: FormData) {

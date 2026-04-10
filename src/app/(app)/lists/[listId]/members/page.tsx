@@ -1,14 +1,12 @@
 import { notFound } from "next/navigation";
-import { shareListAction } from "@/app/(app)/actions";
+import { submitShareListAction } from "@/app/(app)/actions";
 import { InviteMemberForm } from "@/components/members/invite-member-form";
 import { MemberRow } from "@/components/members/member-row";
 import { AppTopBar } from "@/components/navigation/app-topbar";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
-import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import { ListRepository } from "@/server/repositories/list.repository";
@@ -46,22 +44,18 @@ export default async function MembersPage({ params }: { params: Promise<{ listId
       <Card className="space-y-4">
         <SectionHeader title={dict.members.inviteTitle} subtitle={dict.members.inviteSubtitle} />
         <InviteMemberForm
-          action={shareListAction}
+          action={submitShareListAction}
           listId={list.id}
+          submitLabel={dict.members.sendInvite}
+          stickySubmit
           copy={{
             emailPlaceholder: dict.members.emailPlaceholder,
             emailLabel: dict.members.emailLabel,
             roleLabel: dict.members.roleLabel,
             viewer: dict.members.viewer,
-            editor: dict.members.editor
+            editor: dict.members.editor,
+            successMessage: "Uitnodiging verstuurd."
           }}
-          footer={
-            <StickyActionBar>
-              <Button type="submit" fullWidth>
-                {dict.members.sendInvite}
-              </Button>
-            </StickyActionBar>
-          }
         />
       </Card>
     </PageContainer>

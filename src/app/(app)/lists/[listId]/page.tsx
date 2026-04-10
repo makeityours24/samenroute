@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
-import { addPlaceAction, shareListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
+import { addPlaceAction, submitShareListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
 import { getDictionary } from "@/lib/i18n/server";
 
 const listRepository = new ListRepository();
@@ -203,20 +203,17 @@ export default async function ListDetailPage({
             />
           ))}
           <InviteMemberForm
-            action={shareListAction}
+            action={submitShareListAction}
             listId={list.id}
+            submitLabel={dict.listDetail.inviteMember}
             copy={{
               emailPlaceholder: dict.members.emailPlaceholder,
               emailLabel: dict.members.emailLabel,
               roleLabel: dict.members.roleLabel,
               viewer: dict.members.viewer,
-              editor: dict.members.editor
+              editor: dict.members.editor,
+              successMessage: "Uitnodiging verstuurd."
             }}
-            footer={
-              <Button type="submit" fullWidth>
-                {dict.listDetail.inviteMember}
-              </Button>
-            }
           />
         </div>
       </details>

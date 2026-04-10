@@ -19,6 +19,7 @@ async function main() {
   await prisma.routePlan.deleteMany();
   await prisma.listPlace.deleteMany();
   await prisma.place.deleteMany();
+  await prisma.listInvite.deleteMany();
   await prisma.listMember.deleteMany();
   await prisma.list.deleteMany();
   await prisma.category.deleteMany();

@@ -61,6 +61,7 @@ model User {
   visitedItems   ListPlace[]   @relation("VisitedByUser")
   routePlans     RoutePlan[]
   activityLogs   ActivityLog[] @relation("ActorLogs")
+  sentListInvites ListInvite[] @relation("InvitedByUser")
 
   @@map("users")
 }
@@ -117,6 +118,7 @@ model List {
   listPlaces    ListPlace[]
   routePlans    RoutePlan[]
   activityLogs  ActivityLog[]
+  invites       ListInvite[]
 
   @@index([ownerUserId])
   @@map("lists")
@@ -134,6 +136,23 @@ model ListMember {
   @@unique([listId, userId])
   @@index([userId])
   @@map("list_members")
+}
+
+model ListInvite {
+  id              String         @id @default(uuid())
+  listId          String         @map("list_id")
+  email           String
+  role            ListMemberRole
+  invitedByUserId String         @map("invited_by_user_id")
+  acceptedAt      DateTime?      @map("accepted_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  list            List           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  invitedByUser   User           @relation("InvitedByUser", fields: [invitedByUserId], references: [id], onDelete: Restrict)
+
+  @@unique([listId, email])
+  @@index([email, acceptedAt])
+  @@map("list_invites")
 }
 
 model Category {

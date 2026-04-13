@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FileSpreadsheet } from "lucide-react";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { InviteMemberForm } from "@/components/members/invite-member-form";
 import { MemberRow } from "@/components/members/member-row";
@@ -20,7 +21,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Textarea } from "@/components/ui/textarea";
-import { addPlaceAction, submitShareListAction, updateListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
+import { addPlaceAction, importListPlacesAction, submitShareListAction, updateListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
 import { getDictionary } from "@/lib/i18n/server";
 import { ListMemberRole } from "@/server/domain/enums";
 
@@ -32,7 +33,7 @@ export default async function ListDetailPage({
   searchParams
 }: {
   params: Promise<{ listId: string }>;
-  searchParams?: Promise<{ edit?: string }>;
+  searchParams?: Promise<{ edit?: string; import?: string; count?: string; skipped?: string; message?: string }>;
 }) {
   const { listId } = await params;
   const query = searchParams ? await searchParams : undefined;
@@ -48,6 +49,10 @@ export default async function ListDetailPage({
   const plannedCount = list.listPlaces.filter((item) => item.status === "PLANNED").length;
   const visitedCount = list.listPlaces.filter((item) => item.status === "VISITED").length;
   const editingListPlace = query?.edit ? list.listPlaces.find((item) => item.id === query.edit) : null;
+  const importStatus = query?.import;
+  const importedCount = Number(query?.count ?? 0);
+  const skippedCount = Number(query?.skipped ?? 0);
+  const importMessage = query?.message ?? "";
   const membershipRole = list.ownerUserId === user?.id ? ListMemberRole.OWNER : (list.members.find((member) => member.userId === user?.id)?.role ?? undefined);
   const canMutateList = membershipRole === ListMemberRole.OWNER || membershipRole === ListMemberRole.EDITOR;
   const canManageMembers = membershipRole === ListMemberRole.OWNER;
@@ -86,6 +91,17 @@ export default async function ListDetailPage({
       />
       <section className="space-y-3 pt-1">
         <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
+        {importStatus === "success" ? (
+          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--foreground)] shadow-[var(--shadow-soft)]">
+            {importedCount} plekken geimporteerd.
+            {skippedCount > 0 ? ` ${skippedCount} regels zijn overgeslagen omdat ze leeg of dubbel waren.` : ""}
+          </div>
+        ) : null}
+        {importStatus === "error" && importMessage ? (
+          <div className="rounded-[var(--radius)] border border-[color:rgba(185,56,47,0.16)] bg-[color:rgba(185,56,47,0.08)] px-4 py-3 text-sm text-[var(--foreground)] shadow-[var(--shadow-soft)]">
+            {importMessage}
+          </div>
+        ) : null}
         <ListPlacesPanel
           items={list.listPlaces.map((item) => ({
             id: item.id,
@@ -107,6 +123,37 @@ export default async function ListDetailPage({
           copy={dict.listDetail}
         />
       </section>
+      {canMutateList ? (
+        <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+          <summary className="cursor-pointer list-none text-[15px] font-semibold">CSV importeren</summary>
+          <div className="mt-4 space-y-4">
+            <SectionHeader
+              title="Plekken in bulk toevoegen"
+              subtitle="Handig als je al een adressenlijst uit Excel, CRM of planning hebt."
+            />
+            <div className="rounded-2xl bg-[var(--surface-subtle)] p-4 text-sm leading-6 text-[var(--muted-foreground)]">
+              Gebruik voor deze eerste versie een CSV-bestand met bijvoorbeeld kolommen zoals <strong>naam</strong>, <strong>adres</strong>,
+              <strong> postcode</strong>, <strong>stad</strong>, <strong>notitie</strong> of <strong>categorie</strong>. Excel-export met puntkomma's werkt ook.
+            </div>
+            <form action={importListPlacesAction} className="space-y-3">
+              <input type="hidden" name="listId" value={list.id} />
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-[var(--foreground)]">CSV-bestand</span>
+                <div className="rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--surface-subtle)] p-4">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                    <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
+                    Upload je adressenlijst
+                  </div>
+                  <Input name="file" type="file" accept=".csv,text/csv" />
+                </div>
+              </label>
+              <Button type="submit" fullWidth>
+                CSV importeren
+              </Button>
+            </form>
+          </div>
+        </details>
+      ) : null}
       {canMutateList ? (
         <details
           id="list-settings"

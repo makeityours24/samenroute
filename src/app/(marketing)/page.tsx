@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, MapPinned, Route, Star } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CheckCircle2, MapPinned, Route, Star } from "lucide-react";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { Card } from "@/components/ui/card";
 import { PageContainer } from "@/components/ui/page-container";
@@ -54,6 +54,16 @@ export default async function MarketingPage() {
             <p className="text-xs text-[var(--muted-foreground)]">{dict.marketing.drive}</p>
           </Card>
         </div>
+        <a
+          href="/makelaars"
+          className="flex min-h-12 items-center justify-between rounded-[24px] border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+        >
+          <span className="flex items-center gap-2">
+            <BriefcaseBusiness className="h-4 w-4 text-[var(--accent)]" />
+            Voor makelaars en teams
+          </span>
+          <ArrowRight className="h-4 w-4 text-[var(--accent)]" />
+        </a>
         <Link
           href="/signin"
           className="flex min-h-14 items-center justify-center rounded-[24px] bg-[var(--accent)] text-sm font-semibold text-white shadow-[var(--shadow)]"
@@ -69,6 +79,14 @@ export default async function MarketingPage() {
             {dict.marketing.demoCta}
           </Link>
         ) : null}
+        <div className="flex items-center justify-center gap-4 pt-2 text-xs text-[var(--muted-foreground)]">
+          <a href="/privacy" className="font-semibold text-[var(--accent)]">
+            Privacy
+          </a>
+          <a href="/voorwaarden" className="font-semibold text-[var(--accent)]">
+            Voorwaarden
+          </a>
+        </div>
       </section>
     </PageContainer>
   );

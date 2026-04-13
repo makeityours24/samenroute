@@ -15,6 +15,7 @@ import { updateListPlaceService } from "@/server/services/list-places/update-lis
 import { shareListService } from "@/server/services/lists/share-list.service";
 import { archiveListService } from "@/server/services/lists/archive-list.service";
 import { duplicateListService } from "@/server/services/lists/duplicate-list.service";
+import { importListPlacesService } from "@/server/services/lists/import-list-places.service";
 import { completeRouteStopService } from "@/server/services/routes/complete-route-stop.service";
 import { completeRoutePlanService } from "@/server/services/routes/complete-route-plan.service";
 import { addRouteSuggestionService } from "@/server/services/routes/add-route-suggestion.service";
@@ -300,6 +301,42 @@ export async function duplicateListAction(formData: FormData) {
   const duplicated = await duplicateListService(listId, user);
   revalidatePath("/lists");
   redirect(`/lists/${duplicated.id}`);
+}
+
+export async function importListPlacesAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const listId = String(formData.get("listId") ?? "");
+  const file = formData.get("file");
+
+  const search = new URLSearchParams();
+
+  try {
+    if (!(file instanceof File) || file.size === 0) {
+      throw new AppError("Kies eerst een CSV-bestand om te importeren.");
+    }
+
+    const content = await file.text();
+    const result = await importListPlacesService(user, {
+      listId,
+      filename: file.name,
+      content
+    });
+
+    search.set("import", "success");
+    search.set("count", String(result.importedCount));
+    if (result.skippedCount > 0) {
+      search.set("skipped", String(result.skippedCount));
+    }
+
+    revalidatePath(`/lists/${listId}`);
+    revalidatePath("/home");
+  } catch (error) {
+    const message = error instanceof AppError ? error.message : "Er ging iets mis tijdens het importeren van je CSV-bestand.";
+    search.set("import", "error");
+    search.set("message", message);
+  }
+
+  redirect(`/lists/${listId}?${search.toString()}`);
 }
 
 export async function completeRouteStopAction(formData: FormData) {

@@ -26,17 +26,58 @@ export default async function MembersPage({ params }: { params: Promise<{ listId
 
   const membershipRole = list.ownerUserId === user?.id ? ListMemberRole.OWNER : (list.members.find((member) => member.userId === user?.id)?.role ?? undefined);
   const canManageMembers = membershipRole === ListMemberRole.OWNER;
+  const memberInsights = list.members.map((member) => {
+    const addedCount = list.listPlaces.filter((item) => item.place.createdByUser?.id === member.userId).length;
+    const visitedCount = list.listPlaces.filter((item) => item.visitedByUser?.id === member.userId).length;
+
+    const notes = [];
+
+    if (addedCount > 0) {
+      notes.push(dict.members.addedSummary.replace("{count}", String(addedCount)));
+    }
+
+    if (visitedCount > 0) {
+      notes.push(dict.members.visitedSummary.replace("{count}", String(visitedCount)));
+    }
+
+    if (addedCount > visitedCount && addedCount > 0) {
+      notes.push(dict.members.oftenAdds);
+    } else if (visitedCount > 0) {
+      notes.push(dict.members.oftenVisits);
+    }
+
+    return {
+      id: member.id,
+      email: member.user.email,
+      role: member.role,
+      addedCount,
+      visitedCount,
+      subtitle: notes.join(" • ")
+    };
+  });
+  const topAdder = [...memberInsights].sort((left, right) => right.addedCount - left.addedCount)[0];
+  const topVisitor = [...memberInsights].sort((left, right) => right.visitedCount - left.visitedCount)[0];
 
   return (
     <PageContainer>
       <AppTopBar title={dict.members.topTitle} subtitle={list.name} backHref={`/lists/${list.id}`} backLabel={dict.common.back} />
+      <Card className="space-y-2">
+        <SectionHeader title={dict.members.insightsTitle} subtitle={dict.members.insightsSubtitle} />
+        <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+          {dict.members.topAdderLabel.replace("{email}", topAdder?.email ?? dict.members.noInsightYet)}
+        </p>
+        <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+          {dict.members.topVisitorLabel.replace("{email}", topVisitor?.email ?? dict.members.noInsightYet)}
+        </p>
+      </Card>
       <section className="space-y-3">
         <SectionHeader title={dict.members.peopleTitle} subtitle={dict.members.peopleSubtitle} />
-        {list.members.length > 0 ? (
-          list.members.map((member) => (
+        {memberInsights.length > 0 ? (
+          memberInsights.map((member) => (
             <MemberRow
               key={member.id}
-              email={member.user.email}
+              email={member.email}
+              subtitle={member.subtitle || undefined}
               role={member.role}
               labels={{ owner: dict.members.owner, editor: dict.members.editor, viewer: dict.members.viewer }}
             />

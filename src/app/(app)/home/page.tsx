@@ -2,6 +2,7 @@ import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ActiveListCard } from "@/components/home/active-list-card";
 import { ActiveRouteBanner } from "@/components/home/active-route-banner";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
+import { ProactivePlanningCard } from "@/components/home/proactive-planning-card";
 import { ProgressSummaryCard } from "@/components/home/progress-summary-card";
 import { QuickActions } from "@/components/home/quick-actions";
 import { RecentVisitedList } from "@/components/home/recent-visited-list";
@@ -12,6 +13,7 @@ import { ListRepository } from "@/server/repositories/list.repository";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
+import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
 
 const listRepository = new ListRepository();
 
@@ -20,8 +22,35 @@ export default async function HomePage() {
   const { dict } = await getDictionary();
   const summary = user ? await listRepository.getHomeSummary(user.id) : null;
   const behavior = user ? await getUserBehaviorInsightsService(user.id) : null;
+  const activeListDetail = user && summary ? await listRepository.findDetail(summary.id, user.id) : null;
   const pendingCount = summary?.listPlaces.filter((item) => item.status === "PLANNED").length ?? 0;
   const visited = summary?.listPlaces.filter((item) => item.status === "VISITED").slice(0, 3) ?? [];
+  const dayPlans =
+    activeListDetail && behavior
+      ? suggestDayPlans({
+          candidates: activeListDetail.listPlaces
+            .filter((item) => item.status === "PLANNED" && item.includeInRoute)
+            .map((item) => ({
+              id: item.id,
+              priority: item.priority,
+              sortOrder: item.sortOrder,
+              place: {
+                name: item.place.name,
+                latitude: item.place.latitude,
+                longitude: item.place.longitude,
+                categoryName: item.place.category?.name
+              }
+            })),
+          stopsPerDay: behavior.recommendedDayStopCount,
+          transportMode: behavior.recommendedTransportMode
+        })
+      : [];
+  const proactiveDayPlan = !summary?.routePlans[0] && dayPlans.length > 1 ? dayPlans[0] : null;
+  const proactiveDayBody = proactiveDayPlan
+    ? dict.home.proactiveMultiDayBody
+        .replace("{day}", proactiveDayPlan.title)
+        .replace("{count}", String(proactiveDayPlan.stopIds.length))
+    : "";
 
   return (
     <PageContainer className="gap-4">
@@ -55,6 +84,15 @@ export default async function HomePage() {
             yesLabel={dict.home.yes}
             noLabel={dict.home.no}
           />
+          {proactiveDayPlan ? (
+            <ProactivePlanningCard
+              eyebrow={dict.home.proactivePlanningEyebrow}
+              title={dict.home.proactiveMultiDayTitle.replace("{count}", String(dayPlans.length))}
+              body={proactiveDayBody}
+              buttonLabel={dict.home.proactiveMultiDayCta}
+              href={`/today?listId=${summary.id}&day=${proactiveDayPlan.dayNumber}`}
+            />
+          ) : null}
           {behavior ? (
             <BehaviorInsightsCard
               title={dict.home.behaviorTitle}

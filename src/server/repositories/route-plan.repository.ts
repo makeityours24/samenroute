@@ -141,4 +141,24 @@ export class RoutePlanRepository {
       .map((plan) => plan._count.stops)
       .filter((count) => Number.isFinite(count) && count > 0);
   }
+
+  async listRecentTransportModesByUser(userId: string, take = 8) {
+    const plans = await prisma.routePlan.findMany({
+      where: {
+        createdByUserId: userId,
+        status: {
+          in: ["ACTIVE", "COMPLETED"]
+        }
+      },
+      select: {
+        transportMode: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take
+    });
+
+    return plans.map((plan) => plan.transportMode);
+  }
 }

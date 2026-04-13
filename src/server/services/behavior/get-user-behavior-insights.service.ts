@@ -23,6 +23,7 @@ export type UserBehaviorInsights = {
   favoriteCount: number;
   visitedCount: number;
   recommendedDayStopCount: number;
+  recommendedTransportMode: "WALKING" | "BICYCLING" | "DRIVING" | "TRANSIT";
   recommendedListPlaceIds: string[];
 };
 
@@ -63,15 +64,32 @@ function getRecommendedDayStopCount(stopCounts: number[]) {
   return Math.min(Math.max(Math.round(average), 2), 6);
 }
 
+function getRecommendedTransportMode(modes: Array<"WALKING" | "BICYCLING" | "DRIVING" | "TRANSIT">) {
+  if (modes.length === 0) {
+    return "WALKING" as const;
+  }
+
+  const scores = new Map<"WALKING" | "BICYCLING" | "DRIVING" | "TRANSIT", number>();
+
+  modes.forEach((mode, index) => {
+    const recencyWeight = Math.max(1, modes.length - index);
+    scores.set(mode, (scores.get(mode) ?? 0) + recencyWeight);
+  });
+
+  return [...scores.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ?? "WALKING";
+}
+
 export async function getUserBehaviorInsightsService(userId: string, currentListPlaces?: ListPlaceInput[]): Promise<UserBehaviorInsights> {
-  const [signals, recentStopCounts] = await Promise.all([
+  const [signals, recentStopCounts, recentTransportModes] = await Promise.all([
     listPlaceRepository.getUserPreferenceSignals(userId),
-    routePlanRepository.listRecentStopCountsByUser(userId)
+    routePlanRepository.listRecentStopCountsByUser(userId),
+    routePlanRepository.listRecentTransportModesByUser(userId)
   ]);
   const categoryScores = new Map<string, number>();
   let favoriteCount = 0;
   let visitedCount = 0;
   const recommendedDayStopCount = getRecommendedDayStopCount(recentStopCounts);
+  const recommendedTransportMode = getRecommendedTransportMode(recentTransportModes);
 
   for (const item of signals) {
     if (item.isFavorite) {
@@ -128,6 +146,7 @@ export async function getUserBehaviorInsightsService(userId: string, currentList
     favoriteCount,
     visitedCount,
     recommendedDayStopCount,
+    recommendedTransportMode,
     recommendedListPlaceIds
   };
 }

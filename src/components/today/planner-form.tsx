@@ -20,7 +20,9 @@ export function PlannerForm({
   initialError,
   stops,
   initialMaxStops,
+  initialTransportMode,
   suggestionSummary,
+  transportSuggestionSummary,
   submitLabel,
   copy
 }: {
@@ -30,7 +32,9 @@ export function PlannerForm({
   initialError?: string;
   stops: StopOption[];
   initialMaxStops?: number;
+  initialTransportMode?: "WALKING" | "BICYCLING" | "DRIVING" | "TRANSIT";
   suggestionSummary?: string;
+  transportSuggestionSummary?: string;
   submitLabel: string;
   copy?: {
     step1: string;
@@ -42,6 +46,7 @@ export function PlannerForm({
     routeTitleDefault: string;
     transportMode: string;
     transportModeHelp: string;
+    transportPreferenceLabel: string;
     routeOrderingStrategy: string;
     routeOrderingStrategyHelp: string;
     fastestRoute: string;
@@ -77,7 +82,7 @@ export function PlannerForm({
   const router = useRouter();
   const [selectionError, setSelectionError] = useState<string | null>(stops.length > 0 ? (initialError ?? null) : null);
   const [routeOrderingStrategy, setRouteOrderingStrategy] = useState("FASTEST");
-  const [transportMode, setTransportMode] = useState("WALKING");
+  const [transportMode, setTransportMode] = useState(initialTransportMode ?? "WALKING");
   const [selectedStopIds, setSelectedStopIds] = useState(() => stops.filter((stop) => stop.defaultChecked).map((stop) => stop.id));
   const labels = copy ?? {
     step1: "Choose a list",
@@ -89,6 +94,7 @@ export function PlannerForm({
     routeTitleDefault: "Today",
     transportMode: "Transport mode",
     transportModeHelp: "Pick how you want Google Maps to guide you once the route is ready.",
+    transportPreferenceLabel: "Suggested from your earlier routes",
     routeOrderingStrategy: "Route strategy",
     routeOrderingStrategyHelp: "Choose whether speed, priority, or your own list order comes first.",
     fastestRoute: "Fastest route",
@@ -125,6 +131,10 @@ export function PlannerForm({
     setSelectedStopIds(stops.filter((stop) => stop.defaultChecked).map((stop) => stop.id));
     setSelectionError(stops.length > 0 ? (initialError ?? null) : null);
   }, [initialError, stops]);
+
+  useEffect(() => {
+    setTransportMode(initialTransportMode ?? "WALKING");
+  }, [initialTransportMode]);
 
   const strategySummary = useMemo(() => {
     if (routeOrderingStrategy === "PRIORITY_FIRST") {
@@ -253,11 +263,16 @@ export function PlannerForm({
             <div className="space-y-2">
               <p className="text-sm font-medium text-[var(--foreground)]">{labels.transportMode}</p>
               <p className="text-xs leading-5 text-[var(--muted-foreground)]">{labels.transportModeHelp}</p>
+              {transportSuggestionSummary ? (
+                <p className="text-xs leading-5 text-[var(--foreground)]">
+                  <span className="font-semibold">{labels.transportPreferenceLabel}:</span> {transportSuggestionSummary}
+                </p>
+              ) : null}
             </div>
             <input type="hidden" name="transportMode" value={transportMode} />
             <SegmentedControl
               value={transportMode}
-              onChange={setTransportMode}
+              onChange={(value) => setTransportMode(value as "WALKING" | "BICYCLING" | "DRIVING" | "TRANSIT")}
               items={[
                 { value: "WALKING", label: labels.walking },
                 { value: "BICYCLING", label: labels.bicycling },

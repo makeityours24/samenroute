@@ -108,7 +108,14 @@ export class ListRepository {
           include: {
             place: {
               include: {
-                category: true
+                category: true,
+                createdByUser: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true
+                  }
+                }
               }
             },
             visitedByUser: true

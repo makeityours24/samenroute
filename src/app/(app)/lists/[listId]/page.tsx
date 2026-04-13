@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileSpreadsheet } from "lucide-react";
 import { AppTopBar } from "@/components/navigation/app-topbar";
+import { CsvImportForm } from "@/components/lists/csv-import-form";
 import { InviteMemberForm } from "@/components/members/invite-member-form";
 import { MemberRow } from "@/components/members/member-row";
 import { LazyMap } from "@/components/map/lazy-map";
@@ -131,26 +131,7 @@ export default async function ListDetailPage({
               title="Plekken in bulk toevoegen"
               subtitle="Handig als je al een adressenlijst uit Excel, CRM of planning hebt."
             />
-            <div className="rounded-2xl bg-[var(--surface-subtle)] p-4 text-sm leading-6 text-[var(--muted-foreground)]">
-              Gebruik voor deze eerste versie een CSV-bestand met bijvoorbeeld kolommen zoals <strong>naam</strong>, <strong>adres</strong>,
-              <strong> postcode</strong>, <strong>stad</strong>, <strong>notitie</strong> of <strong>categorie</strong>. Excel-export met puntkomma's werkt ook.
-            </div>
-            <form action={importListPlacesAction} className="space-y-3">
-              <input type="hidden" name="listId" value={list.id} />
-              <label className="block space-y-2">
-                <span className="text-sm font-semibold text-[var(--foreground)]">CSV-bestand</span>
-                <div className="rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--surface-subtle)] p-4">
-                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-                    <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
-                    Upload je adressenlijst
-                  </div>
-                  <Input name="file" type="file" accept=".csv,text/csv" />
-                </div>
-              </label>
-              <Button type="submit" fullWidth>
-                CSV importeren
-              </Button>
-            </form>
+            <CsvImportForm action={importListPlacesAction} listId={list.id} />
           </div>
         </details>
       ) : null}

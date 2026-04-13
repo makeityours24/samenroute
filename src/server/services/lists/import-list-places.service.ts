@@ -3,48 +3,10 @@ import { addPlaceToListService } from "@/server/services/list-places/add-place-t
 import { AppError } from "@/server/services/errors";
 import type { AuthorizedUser } from "@/server/domain/types";
 import { parseCsv } from "@/lib/utils/csv";
+import { mapCsvRowToPlaceDraft } from "@/lib/utils/csv-import";
 import { PlaceRepository } from "@/server/repositories/place.repository";
 
 const placeRepository = new PlaceRepository();
-
-const HEADER_ALIASES = {
-  name: ["name", "naam", "titel", "title", "object", "woning", "plek"],
-  addressLine: ["address", "adres", "straat", "street", "streetnumber", "straatenhuisnummer"],
-  postalCode: ["postalcode", "postcode", "zip", "zipcode"],
-  city: ["city", "stad", "plaats", "town"],
-  country: ["country", "land"],
-  note: ["note", "notitie", "opmerking", "remarks", "remark"],
-  category: ["category", "categorie", "type"],
-  priority: ["priority", "prioriteit"]
-} as const;
-
-function firstValue(row: Record<string, string>, aliases: readonly string[]) {
-  for (const alias of aliases) {
-    const value = row[alias];
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value.trim();
-    }
-  }
-
-  return "";
-}
-
-function normalizeCategoryName(value: string) {
-  const normalized = value.trim().toLowerCase();
-
-  const aliases: Record<string, string> = {
-    koffie: "Coffee",
-    coffee: "Coffee",
-    eten: "Food",
-    food: "Food",
-    restaurant: "Food",
-    museum: "Museum",
-    park: "Park",
-    natuur: "Park"
-  };
-
-  return aliases[normalized] ?? value.trim();
-}
 
 export async function importListPlacesService(user: AuthorizedUser, input: { listId: string; filename: string; content: string }) {
   if (!input.filename.toLowerCase().endsWith(".csv")) {
@@ -73,16 +35,10 @@ export async function importListPlacesService(user: AuthorizedUser, input: { lis
   let skippedCount = 0;
 
   for (const row of rows) {
-    const name = firstValue(row, HEADER_ALIASES.name);
-    const addressLine = firstValue(row, HEADER_ALIASES.addressLine);
-    const postalCode = firstValue(row, HEADER_ALIASES.postalCode);
-    const city = firstValue(row, HEADER_ALIASES.city);
-    const country = firstValue(row, HEADER_ALIASES.country);
-    const note = firstValue(row, HEADER_ALIASES.note);
-    const categoryName = normalizeCategoryName(firstValue(row, HEADER_ALIASES.category));
-    const priorityValue = firstValue(row, HEADER_ALIASES.priority);
+    const draft = mapCsvRowToPlaceDraft(row);
+    const { name, addressLine, postalCode, city, country, note, categoryName, priority, isValid } = draft;
 
-    if (!name && !addressLine) {
+    if (!isValid) {
       skippedCount += 1;
       continue;
     }
@@ -97,7 +53,6 @@ export async function importListPlacesService(user: AuthorizedUser, input: { lis
 
     seenSignatures.add(signature);
 
-    const priority = Math.max(0, Math.min(5, Number.parseInt(priorityValue || "0", 10) || 0));
     const categoryId = categoryName ? categoriesByName.get(categoryName.toLowerCase()) : undefined;
 
     const place = await createPlaceService(user, {

@@ -41,6 +41,72 @@ function normalizeAppPath(input: string) {
   return input;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function buildMagicLinkEmail(input: {
+  intro: string;
+  reason: string;
+  url: string;
+  destinationHint?: string;
+}) {
+  const safeIntro = escapeHtml(input.intro);
+  const safeReason = escapeHtml(input.reason);
+  const safeUrl = escapeHtml(input.url);
+  const destinationHint = input.destinationHint ?? "Daarna ga je direct verder in de app.";
+  const safeDestinationHint = escapeHtml(destinationHint);
+
+  return {
+    text: `${input.intro}
+
+Waarom je deze mail krijgt:
+${input.reason}
+
+Wat je moet doen:
+1. Klik op de knop of open de link hieronder.
+2. Je wordt automatisch ingelogd op SamenRoute.
+3. ${destinationHint}
+
+Heb je dit niet zelf gedaan?
+Dan kun je deze mail negeren. Er gebeurt niets als je niet op de link klikt.
+
+Inloglink:
+${input.url}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;max-width:560px;margin:0 auto">
+        <h2 style="margin-bottom:12px;color:#111827">Je link voor SamenRoute</h2>
+        <p>${safeIntro}</p>
+        <p><strong>Waarom je deze mail krijgt</strong><br />${safeReason}</p>
+        <p><strong>Wat je moet doen</strong></p>
+        <ol style="padding-left:20px">
+          <li>Klik op de knop hieronder.</li>
+          <li>Je wordt automatisch ingelogd op SamenRoute.</li>
+          <li>${safeDestinationHint}</li>
+        </ol>
+        <p style="margin:20px 0">
+          <a href="${safeUrl}" style="display:inline-block;background:#1f7a5c;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:600">
+            Open SamenRoute
+          </a>
+        </p>
+        <p style="font-size:14px;color:#4b5563">
+          Werkt de knop niet? Open dan deze link:<br />
+          <a href="${safeUrl}">${safeUrl}</a>
+        </p>
+        <p style="font-size:14px;color:#4b5563">
+          <strong>Heb je dit niet zelf gedaan?</strong><br />
+          Dan kun je deze mail negeren. Er gebeurt niets als je niet op de link klikt.
+        </p>
+      </div>
+    `
+  };
+}
+
 async function storeMagicLink(email: string, url: string) {
   await fs.mkdir(devEmailDir, { recursive: true });
   const filename = path.join(devEmailDir, `${Date.now()}-${email.replace(/[^a-z0-9]/gi, "_")}.json`);
@@ -93,6 +159,8 @@ export async function sendEmailMagicLink(input: {
   callbackPath: string;
   subject: string;
   intro: string;
+  reason?: string;
+  destinationHint?: string;
 }) {
   const email = input.email.trim().toLowerCase();
   const token = randomBytes(32).toString("hex");
@@ -112,12 +180,19 @@ export async function sendEmailMagicLink(input: {
     }
   });
 
+  const emailContent = buildMagicLinkEmail({
+    intro: input.intro,
+    reason: input.reason ?? "Deze link is voor je aangemaakt binnen SamenRoute.",
+    url: url.toString(),
+    destinationHint: input.destinationHint
+  });
+
   await deliverMagicLinkEmail({
     email,
     url: url.toString(),
     subject: input.subject,
-    text: `${input.intro}\n\nOpen this magic link: ${url.toString()}`,
-    html: `<p>${input.intro}</p><p><a href="${url.toString()}">${url.toString()}</a></p>`
+    text: emailContent.text,
+    html: emailContent.html
   });
 }
 
@@ -137,12 +212,18 @@ function createProviders() {
             }
           : undefined,
       async sendVerificationRequest(params: { identifier: string; url: string }) {
+        const emailContent = buildMagicLinkEmail({
+          intro: "Je probeerde in te loggen op SamenRoute.",
+          reason: "Je hebt zojuist je e-mailadres ingevuld op samenroute.nl om veilig in te loggen.",
+          url: params.url
+        });
+
         await deliverMagicLinkEmail({
           email: params.identifier,
           url: params.url,
-          subject: "Sign in to SamenRoute",
-          text: `Open this magic link to sign in: ${params.url}`,
-          html: `<p>Open this magic link to sign in:</p><p><a href="${params.url}">${params.url}</a></p>`
+          subject: "Je inloglink voor SamenRoute",
+          text: emailContent.text,
+          html: emailContent.html
         });
       }
     })

@@ -90,7 +90,9 @@ export async function shareListService(listId: string, user: AuthorizedUser, inp
     email,
     callbackPath: `/lists/${listId}`,
     subject: `Uitnodiging voor ${list?.name ?? "een SamenRoute-lijst"}`,
-    intro: `Je bent uitgenodigd voor "${list?.name ?? "een SamenRoute-lijst"}". Open de magic link om direct toegang te krijgen.`
+    intro: `Je bent uitgenodigd voor "${list?.name ?? "een SamenRoute-lijst"}". Open de magic link om direct toegang te krijgen.`,
+    reason: `Iemand heeft dit e-mailadres gebruikt om je toegang te geven tot "${list?.name ?? "een SamenRoute-lijst"}" op samenroute.nl.`,
+    destinationHint: "Daarna kom je direct in de gedeelde lijst terecht."
   });
 
   await activityLogRepository.create({

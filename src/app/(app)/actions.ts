@@ -23,6 +23,7 @@ import { ListRepository } from "@/server/repositories/list.repository";
 import { updatePlaceService } from "@/server/services/places/update-place.service";
 import { ListPlaceRepository } from "@/server/repositories/list-place.repository";
 import { AppError } from "@/server/services/errors";
+import { submitMakelaarsDemoRequestService } from "@/server/services/marketing/submit-makelaars-demo-request.service";
 
 const listRepository = new ListRepository();
 const listPlaceRepository = new ListPlaceRepository();
@@ -250,6 +251,11 @@ export type ShareListFormState = {
   message?: string;
 };
 
+export type DemoRequestFormState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+};
+
 export async function submitShareListAction(
   _previousState: ShareListFormState,
   formData: FormData
@@ -283,6 +289,32 @@ export async function submitShareListAction(
     return {
       status: "error",
       message: "Er ging iets mis bij het delen van de lijst."
+    };
+  }
+}
+
+export async function submitMakelaarsDemoRequestAction(
+  _previousState: DemoRequestFormState,
+  formData: FormData
+): Promise<DemoRequestFormState> {
+  try {
+    await submitMakelaarsDemoRequestService({
+      name: String(formData.get("name") ?? ""),
+      officeName: String(formData.get("officeName") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      city: String(formData.get("city") ?? "") || undefined,
+      weeklyViewings: String(formData.get("weeklyViewings") ?? "") || undefined,
+      notes: String(formData.get("notes") ?? "") || undefined
+    });
+
+    return {
+      status: "success",
+      message: "Je aanvraag is verstuurd. We nemen contact met je op via e-mail."
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof AppError ? error.message : "Er ging iets mis bij het versturen van je aanvraag."
     };
   }
 }

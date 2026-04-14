@@ -4,13 +4,14 @@ import {
   ArrowRight,
   Building2,
   CalendarClock,
-  CheckCircle2,
   Download,
   FileSpreadsheet,
   Mail,
   Route as RouteIcon,
   Users
 } from "lucide-react";
+import { submitMakelaarsDemoRequestAction } from "@/app/(app)/actions";
+import { MakelaarsDemoIntakeForm } from "@/components/marketing/makelaars-demo-intake-form";
 import { Card } from "@/components/ui/card";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { PageContainer } from "@/components/ui/page-container";
@@ -216,12 +217,19 @@ export default async function MakelaarsDemoPage() {
         </Card>
 
         <Card className="space-y-4 p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Klaar om te testen?</p>
-          <h2 className="text-2xl font-semibold">Kies je volgende stap</h2>
-          <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Demo-aanvraag</p>
+          <h2 className="text-2xl font-semibold">Laat weten hoe jullie werken</h2>
+          <p className="text-sm leading-7 text-[var(--muted-foreground)]">
+            Laat hier kort je gegevens achter. Dan kunnen we reageren met een passende vervolgstap voor jouw kantoor of werkwijze.
+          </p>
+          <MakelaarsDemoIntakeForm action={submitMakelaarsDemoRequestAction} />
+          <div className="rounded-[24px] bg-[var(--surface-subtle)] p-4 text-sm leading-6 text-[var(--muted-foreground)]">
+            Liever eerst zelf voelen hoe het werkt? Open dan de demo-omgeving of test eerst met het voorbeeld-CSV.
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
             <Link
               href={"/signin" as AppRoute}
-              className="flex min-h-14 items-center justify-center rounded-[24px] bg-[var(--accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow)]"
+              className="flex min-h-12 items-center justify-center rounded-[24px] bg-[var(--accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow)]"
             >
               Open demo-omgeving
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -232,15 +240,6 @@ export default async function MakelaarsDemoPage() {
             >
               Download voorbeeld-CSV
             </a>
-            <a
-              href="mailto:info@miy24.nl?subject=SamenRoute%20verkenning%20makelaars"
-              className="flex min-h-12 items-center justify-center rounded-[24px] border border-[var(--border)] bg-white px-5 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
-            >
-              Plan een verkenning
-            </a>
-          </div>
-          <div className="rounded-[24px] bg-[var(--surface-subtle)] p-4 text-sm leading-6 text-[var(--muted-foreground)]">
-            Liever eerst zelf voelen hoe het werkt? Begin dan met de demo-omgeving en importeer daarna een voorbeeldlijst.
           </div>
         </Card>
       </section>

@@ -5,21 +5,27 @@ import { Card } from "@/components/ui/card";
 export function QuickActions({
   addPlaceLabel,
   addPlaceHint,
+  addPlaceHref = "/lists",
   importCsvLabel,
   importCsvHint,
+  importCsvHref = "/lists",
   planTodayLabel,
-  planTodayHint
+  planTodayHint,
+  planTodayHref = "/today"
 }: {
   addPlaceLabel: string;
   addPlaceHint: string;
+  addPlaceHref?: string;
   importCsvLabel: string;
   importCsvHint: string;
+  importCsvHref?: string;
   planTodayLabel: string;
   planTodayHint: string;
+  planTodayHref?: string;
 }) {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
-      <Link href="/lists">
+      <Link href={addPlaceHref}>
         <Card className="flex min-h-20 flex-col justify-between bg-white p-3 shadow-[var(--shadow-soft)]">
           <MapPinPlusInside className="h-5 w-5 text-[var(--accent)]" />
           <div>
@@ -28,7 +34,7 @@ export function QuickActions({
           </div>
         </Card>
       </Link>
-      <Link href="/lists">
+      <Link href={importCsvHref}>
         <Card className="flex min-h-20 flex-col justify-between bg-white p-3 shadow-[var(--shadow-soft)]">
           <FileSpreadsheet className="h-5 w-5 text-[var(--accent)]" />
           <div>
@@ -37,7 +43,7 @@ export function QuickActions({
           </div>
         </Card>
       </Link>
-      <Link href="/today">
+      <Link href={planTodayHref}>
         <Card className="flex min-h-20 flex-col justify-between border-transparent bg-[linear-gradient(180deg,#256b56_0%,#1f5d4c_100%)] p-3 text-white shadow-[var(--shadow)]">
           <Route className="h-5 w-5" />
           <div>

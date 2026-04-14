@@ -75,6 +75,39 @@ export default async function ListsPage() {
           </div>
         </div>
       </section>
+      {activeLists.length > 0 ? (
+        <section className="space-y-3 rounded-[var(--radius-xl)] border border-[var(--border)] bg-white px-4 py-4 shadow-[var(--shadow-soft)]">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+            <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
+            Werk verder in je laatste importlijst
+          </div>
+          <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+            Je hoeft niet eerst door de lijst heen te zoeken. Open direct de CSV-import of ga meteen door naar de dagindeling van je
+            meest recente actieve lijst.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Link
+              href={`/lists/${activeLists[0].id}?focus=csv-import#csv-import`}
+              className="flex min-h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow)]"
+            >
+              Open CSV-import
+            </Link>
+            <Link
+              href={`/today?listId=${activeLists[0].id}`}
+              className="flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)]"
+            >
+              Werk dagvolgorde uit
+            </Link>
+            <a
+              href="/examples/makelaars-import-voorbeeld.csv"
+              download
+              className="flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 text-sm font-semibold text-[var(--foreground)]"
+            >
+              Download voorbeeld-CSV
+            </a>
+          </div>
+        </section>
+      ) : null}
       <section className="space-y-3">
         <SectionHeader title={dict.lists.activeTitle} subtitle={dict.lists.activeSubtitle} />
         {activeLists.length > 0 ? (
@@ -103,7 +136,13 @@ export default async function ListsPage() {
                   rolePrefix: dict.lists.rolePrefix
                 }}
               />
-              <div className="flex justify-end pr-1">
+              <div className="flex flex-wrap justify-end gap-2 pr-1">
+                <Link
+                  href={`/lists/${list.id}?focus=csv-import#csv-import`}
+                  className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-3 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+                >
+                  CSV-import
+                </Link>
                 <form action={duplicateListAction}>
                   <input type="hidden" name="listId" value={list.id} />
                   <FormSubmitButton type="submit" variant="ghost" size="sm" pendingLabel="Bezig...">

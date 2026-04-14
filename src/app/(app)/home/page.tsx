@@ -8,6 +8,7 @@ import { ProactivePlanningCard } from "@/components/home/proactive-planning-card
 import { ProgressSummaryCard } from "@/components/home/progress-summary-card";
 import { QuickActions } from "@/components/home/quick-actions";
 import { RecentVisitedList } from "@/components/home/recent-visited-list";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -72,6 +73,37 @@ export default async function HomePage() {
           <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
             {dict.home.flowHint}
           </div>
+          <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+              <BriefcaseBusiness className="h-4 w-4 text-[var(--accent)]" />
+              Zakelijke werkflow
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Werk verder in je actieve lijst</p>
+              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+                Gebruik je huidige lijst als vertrekpunt: open direct de CSV-import voor extra adressen of werk meteen de dagvolgorde uit.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                href={`/lists/${summary.id}?focus=csv-import#csv-import`}
+                className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+              >
+                <span className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Open CSV-import
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href={`/today?listId=${summary.id}`}
+                className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+              >
+                <span>Werk de dagvolgorde uit</span>
+                <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+              </Link>
+            </div>
+          </Card>
           <ActiveListCard
             listName={summary.name}
             pendingCount={pendingCount}
@@ -85,10 +117,13 @@ export default async function HomePage() {
           <QuickActions
             addPlaceLabel={dict.home.addPlace}
             addPlaceHint={dict.home.addPlaceHint}
+            addPlaceHref={`/lists/${summary.id}?focus=add-place#add-place`}
             importCsvLabel={dict.home.importCsv}
             importCsvHint={dict.home.importCsvHint}
+            importCsvHref={`/lists/${summary.id}?focus=csv-import#csv-import`}
             planTodayLabel={dict.home.planToday}
             planTodayHint={dict.home.planTodayHint}
+            planTodayHref={`/today?listId=${summary.id}`}
           />
           <ProgressSummaryCard
             placesLeft={pendingCount}

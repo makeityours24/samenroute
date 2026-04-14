@@ -1,6 +1,7 @@
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
 import { DayPlanSuggestionsCard } from "@/components/today/day-plan-suggestions-card";
+import { PlanningFlowCard } from "@/components/today/planning-flow-card";
 import { PlannerForm } from "@/components/today/planner-form";
 import { RoutePreviewCard } from "@/components/today/route-preview-card";
 import { getCurrentUser } from "@/lib/auth/auth";
@@ -111,18 +112,15 @@ export default async function TodayPage({
       <AppTopBar title={dict.today.topTitle} subtitle={dict.today.topSubtitle} />
       {detail ? (
         <>
-          {behavior ? (
-            <BehaviorInsightsCard
-              title={dict.today.behaviorTitle}
-              subtitle={dict.today.behaviorSubtitle}
-              categories={behavior.topCategories}
-              topCategoriesLabel={dict.today.behaviorTopCategories}
-              favoritesLabel={dict.today.behaviorFavorites}
-              favoritesCount={behavior.favoriteCount}
-              visitsLabel={dict.today.behaviorVisits}
-              visitsCount={behavior.visitedCount}
-            />
-          ) : null}
+          <PlanningFlowCard
+            title={dict.today.flowTitle}
+            subtitle={dict.today.flowSubtitle}
+            steps={[
+              dict.today.flowStepChooseDay,
+              dict.today.flowStepConfirmRoute,
+              dict.today.flowStepOpenMaps
+            ]}
+          />
           {dayPlans.length > 1 ? (
             <DayPlanSuggestionsCard
               listId={detail.id}
@@ -141,8 +139,26 @@ export default async function TodayPage({
                 cultureTheme: dict.today.dayPlansCultureTheme,
                 foodWalkTheme: dict.today.dayPlansFoodWalkTheme,
                 outdoorTheme: dict.today.dayPlansOutdoorTheme,
-                mixTheme: dict.today.dayPlansMixTheme
+                mixTheme: dict.today.dayPlansMixTheme,
+                morningMoment: dict.today.dayPlansMorningMoment,
+                lunchMoment: dict.today.dayPlansLunchMoment,
+                afternoonMoment: dict.today.dayPlansAfternoonMoment,
+                eveningMoment: dict.today.dayPlansEveningMoment,
+                shareDay: dict.today.dayPlansShareDay,
+                copiedDay: dict.today.dayPlansCopiedDay
               }}
+            />
+          ) : null}
+          {behavior ? (
+            <BehaviorInsightsCard
+              title={dict.today.behaviorTitle}
+              subtitle={dict.today.behaviorSubtitle}
+              categories={behavior.topCategories}
+              topCategoriesLabel={dict.today.behaviorTopCategories}
+              favoritesLabel={dict.today.behaviorFavorites}
+              favoritesCount={behavior.favoriteCount}
+              visitsLabel={dict.today.behaviorVisits}
+              visitsCount={behavior.visitedCount}
             />
           ) : null}
           <PlannerForm

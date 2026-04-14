@@ -15,6 +15,7 @@ import { archiveListAction } from "@/app/(app)/actions";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { PlaceRepository } from "@/server/repositories/place.repository";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/ui/page-container";
@@ -24,6 +25,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { addPlaceAction, importListPlacesAction, submitShareListAction, updateListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
 import { getDictionary } from "@/lib/i18n/server";
 import { ListMemberRole } from "@/server/domain/enums";
+import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
+import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
 
 const listRepository = new ListRepository();
 const placeRepository = new PlaceRepository();
@@ -56,6 +59,27 @@ export default async function ListDetailPage({
   const membershipRole = list.ownerUserId === user?.id ? ListMemberRole.OWNER : (list.members.find((member) => member.userId === user?.id)?.role ?? undefined);
   const canMutateList = membershipRole === ListMemberRole.OWNER || membershipRole === ListMemberRole.EDITOR;
   const canManageMembers = membershipRole === ListMemberRole.OWNER;
+  const behavior = user ? await getUserBehaviorInsightsService(user.id) : null;
+  const dayPlans =
+    behavior
+      ? suggestDayPlans({
+          candidates: list.listPlaces
+            .filter((item) => item.status === "PLANNED" && item.includeInRoute)
+            .map((item) => ({
+              id: item.id,
+              priority: item.priority,
+              sortOrder: item.sortOrder,
+              place: {
+                name: item.place.name,
+                latitude: item.place.latitude,
+                longitude: item.place.longitude,
+                categoryName: item.place.category?.name
+              }
+            })),
+          stopsPerDay: behavior.recommendedDayStopCount,
+          transportMode: behavior.recommendedTransportMode
+        })
+      : [];
 
   return (
     <PageContainer className="gap-4">
@@ -89,6 +113,21 @@ export default async function ListDetailPage({
         }}
         planTodayHref={`/today?listId=${list.id}`}
       />
+      {dayPlans.length > 1 ? (
+        <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)]">
+          <SectionHeader
+            title={dict.listDetail.multiDayTitle.replace("{count}", String(dayPlans.length))}
+            subtitle={dict.listDetail.multiDayBody
+              .replace("{day}", dayPlans[0]?.title ?? "Dag 1")
+              .replace("{mode}", canManageMembers ? dict.listDetail.multiDayGroupMode : dict.listDetail.multiDaySoloMode)}
+            action={
+              <Link href={`/today?listId=${list.id}&day=1`} className="text-sm font-semibold text-[var(--accent)]">
+                {dict.listDetail.multiDayAction}
+              </Link>
+            }
+          />
+        </Card>
+      ) : null}
       <section className="space-y-3 pt-1">
         <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
         {importStatus === "success" ? (

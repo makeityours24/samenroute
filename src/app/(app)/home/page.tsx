@@ -51,6 +51,7 @@ export default async function HomePage() {
         .replace("{day}", proactiveDayPlan.title)
         .replace("{count}", String(proactiveDayPlan.stopIds.length))
     : "";
+  const isSharedList = (activeListDetail?.members.length ?? 0) > 1;
 
   return (
     <PageContainer className="gap-4">
@@ -89,8 +90,15 @@ export default async function HomePage() {
               eyebrow={dict.home.proactivePlanningEyebrow}
               title={dict.home.proactiveMultiDayTitle.replace("{count}", String(dayPlans.length))}
               body={proactiveDayBody}
+              steps={[
+                dict.home.proactiveStepList,
+                dict.home.proactiveStepDay.replace("{day}", proactiveDayPlan.title),
+                dict.home.proactiveStepRoute
+              ]}
               buttonLabel={dict.home.proactiveMultiDayCta}
               href={`/today?listId=${summary.id}&day=${proactiveDayPlan.dayNumber}`}
+              secondaryLabel={isSharedList ? dict.home.proactiveShareCta : undefined}
+              secondaryHref={isSharedList ? `/today?listId=${summary.id}&day=${proactiveDayPlan.dayNumber}` : undefined}
             />
           ) : null}
           {behavior ? (

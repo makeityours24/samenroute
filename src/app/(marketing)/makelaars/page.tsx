@@ -42,7 +42,7 @@ const outcomes = [
 const personas = [
   {
     title: "Zelfstandige makelaar",
-    body: "Voor dagen waarop je meerdere bezichtigingen slim achter elkaar wilt laten lopen, zonder losse briefjes en handmatig schuiven."
+    body: "Voor dagen waarop je meerdere bezichtigingen logisch achter elkaar wilt laten lopen, zonder losse briefjes en handmatig schuiven."
   },
   {
     title: "Klein kantoor",
@@ -102,7 +102,7 @@ export default async function MakelaarsPage() {
           <Card className="space-y-5 bg-white/92 p-6">
             <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold text-[var(--accent)]">
               <BriefcaseBusiness className="h-4 w-4" />
-              Designvoorstel voor makelaars
+              Concept voor makelaars
             </div>
 
             <div className="space-y-3">
@@ -114,7 +114,7 @@ export default async function MakelaarsPage() {
                 te laten verlopen. Minder schuiven, minder heen-en-weer rijden, meer overzicht.
               </p>
               <p className="max-w-xl text-sm leading-7 text-[var(--foreground)]">
-                Geen nieuw CRM. Geen zwaar systeem. Gewoon een slimme planningslaag boven op je bestaande werkwijze.
+                Geen nieuw CRM. Geen zwaar systeem. Gewoon een duidelijke planningslaag boven op je bestaande werkwijze.
               </p>
             </div>
 
@@ -122,7 +122,7 @@ export default async function MakelaarsPage() {
               <div className="rounded-[24px] bg-[var(--surface-subtle)] p-4">
                 <Clock3 className="mb-2 h-5 w-5 text-[var(--accent)]" />
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Minder reistijd</p>
-                <p className="mt-2 text-sm text-[var(--foreground)]">Slimmere volgorde voor je bezichtigingen.</p>
+                <p className="mt-2 text-sm text-[var(--foreground)]">Logische volgorde voor je bezichtigingen.</p>
               </div>
               <div className="rounded-[24px] bg-[var(--surface-subtle)] p-4">
                 <CalendarRange className="mb-2 h-5 w-5 text-[var(--accent)]" />
@@ -163,7 +163,7 @@ export default async function MakelaarsPage() {
               <div className="rounded-[28px] bg-white p-4 shadow-[var(--shadow)]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Routevoorstel</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Dagindeling</p>
                     <h2 className="mt-2 text-2xl font-semibold">Arnhem bezichtigingsdag</h2>
                   </div>
                   <div className="rounded-full bg-[var(--surface-muted)] px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)]">
@@ -348,7 +348,7 @@ export default async function MakelaarsPage() {
             </div>
             <div className="rounded-[22px] bg-white p-4 shadow-[var(--shadow-soft)]">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">3</p>
-              <p className="mt-2 text-sm font-semibold">Routevoorstel</p>
+              <p className="mt-2 text-sm font-semibold">Dagindeling</p>
             </div>
           </div>
 
@@ -379,7 +379,7 @@ export default async function MakelaarsPage() {
         </Card>
         <Card className="space-y-3 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Stap 2</p>
-          <h3 className="text-lg font-semibold">Laat de volgorde voorstellen</h3>
+          <h3 className="text-lg font-semibold">Werk de dagvolgorde uit</h3>
           <p className="text-sm leading-6 text-[var(--muted-foreground)]">
             SamenRoute zet de dag eerst in een praktische volgorde op basis van ligging en ritme.
           </p>
@@ -412,10 +412,10 @@ export default async function MakelaarsPage() {
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="space-y-4 bg-[var(--foreground)] p-6 text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">Positionering</p>
-          <h2 className="max-w-2xl text-2xl font-semibold leading-tight">SamenRoute is niet je navigatie-app. Het is de slimme laag daarvoor.</h2>
+          <h2 className="max-w-2xl text-2xl font-semibold leading-tight">SamenRoute is niet je navigatie-app. Het is de planningslaag daarvoor.</h2>
           <p className="max-w-2xl text-sm leading-7 text-white/78">
             Google Maps blijft sterk in navigeren. SamenRoute wordt juist interessant vóórdat de rit begint: adressen verzamelen,
-            slimme volgorde kiezen, de dag structureren en voortgang vasthouden.
+            een logische volgorde bepalen, de dag structureren en voortgang vasthouden.
           </p>
         </Card>
 

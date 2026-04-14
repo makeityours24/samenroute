@@ -2,7 +2,6 @@ import { getCurrentUser } from "@/lib/auth/auth";
 import { createListAction, createListAndOpenImportAction, duplicateListAction } from "@/app/(app)/actions";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ListCard } from "@/components/lists/list-card";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { ListRepository } from "@/server/repositories/list.repository";
@@ -46,7 +45,7 @@ export default async function ListsPage() {
             <Input name="name" placeholder="Bezichtigingen week 16" aria-label="Zakelijke lijstnaam" required />
             <Textarea
               name="description"
-              placeholder="Importeer adressen en laat daarna de slimste volgorde voorstellen"
+              placeholder="Importeer adressen en werk daarna de dagvolgorde uit"
               aria-label="Zakelijke lijstomschrijving"
             />
             <Input name="coverColor" placeholder="#1F7A5C" aria-label="Lijstkleur" />

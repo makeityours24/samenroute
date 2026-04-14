@@ -152,7 +152,7 @@ export default async function HomePage() {
               <h2 className="text-xl font-semibold text-[var(--foreground)]">Begin je dag met een adressenlijst, niet met losse notities.</h2>
               <p className="text-sm leading-6 text-[var(--muted-foreground)]">
                 Voor makelaars en andere afspraakgedreven teams is dit de snelste route: maak eerst een lijst, open meteen de
-                CSV-import en laat SamenRoute daarna de slimste volgorde voorstellen.
+                CSV-import en werk daarna de dagvolgorde uit.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

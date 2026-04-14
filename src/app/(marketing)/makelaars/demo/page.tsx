@@ -30,7 +30,7 @@ const nextSteps = [
   },
   {
     step: "3",
-    title: "Laat de volgorde voorstellen",
+    title: "Werk de dagvolgorde uit",
     body: "SamenRoute zet de dag eerst logisch neer voordat je navigatie opent."
   },
   {
@@ -170,7 +170,7 @@ export default async function MakelaarsDemoPage() {
               Dat maakt de zakelijke instap veel praktischer dan alles met de hand invoeren.
             </p>
             <p>
-              Daarna kun je in de Vandaag-flow een routevoorstel maken, de dag structureren en vervolgens doorzetten naar Google Maps.
+              Daarna kun je in de Vandaag-flow de dagvolgorde uitwerken, de dag structureren en vervolgens doorzetten naar Google Maps.
             </p>
           </div>
           <div className="rounded-[24px] bg-[var(--surface-subtle)] p-4">
@@ -180,7 +180,7 @@ export default async function MakelaarsDemoPage() {
               <li>2. Open de demo-omgeving</li>
               <li>3. Maak of open een lijst</li>
               <li>4. Importeer het CSV-bestand</li>
-              <li>5. Laat een routevoorstel maken voor vandaag</li>
+              <li>5. Werk de dagvolgorde voor vandaag uit</li>
             </ol>
           </div>
         </Card>
@@ -212,7 +212,7 @@ export default async function MakelaarsDemoPage() {
           </h2>
           <p className="max-w-2xl text-sm leading-7 text-white/78">
             Dit voelt vaak beter dan meteen een salesgesprek. Je ziet eerst of de flow logisch is voor jouw werkdag: adressen erin,
-            dagvoorstel maken, navigatie openen en voortgang vasthouden.
+            dagindeling uitwerken, navigatie openen en voortgang vasthouden.
           </p>
         </Card>
 

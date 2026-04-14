@@ -264,18 +264,18 @@ export default async function MakelaarsPage() {
             Zakelijke importflow
           </div>
           <div className="space-y-3">
-            <h2 className="text-2xl font-semibold">Heb je al een Excel- of adressenlijst? Dan moet import de snelste start worden.</h2>
+            <h2 className="text-2xl font-semibold">Heb je al een adressenlijst? Dan is CSV-import nu de snelste start.</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              Voor zakelijke teams zit de waarde niet alleen in de route, maar in hoe snel je daar komt. Daarom zou SamenRoute
-              ook een CSV-import moeten krijgen voor adressen uit Excel, CRM of planningstools.
+              Voor zakelijke teams zit de waarde niet alleen in de route, maar ook in hoe snel je daar komt. Daarom kun je in
+              SamenRoute nu al een CSV uploaden, eerst een preview controleren en daarna pas de plekken echt importeren.
             </p>
           </div>
           <div className="space-y-3">
             <div className="rounded-[22px] bg-[var(--surface-subtle)] px-4 py-4">
-              <p className="text-sm font-semibold">Hoe ik dit zou opbouwen</p>
+              <p className="text-sm font-semibold">Wat nu al werkt</p>
               <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Eerst CSV, daarna pas echte Excel-bestanden. CSV is betrouwbaarder, sneller te testen en sterk genoeg voor de eerste
-                zakelijke versie.
+                CSV is de eerste zakelijke stap: betrouwbaar, snel te testen en sterk genoeg voor adressen uit Excel, CRM of
+                planningslijsten.
               </p>
             </div>
             <div className="rounded-[22px] bg-[var(--surface-subtle)] px-4 py-4">
@@ -297,19 +297,19 @@ export default async function MakelaarsPage() {
         <Card className="space-y-4 bg-[linear-gradient(180deg,#ffffff_0%,#f6f4ef_100%)] p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Conceptscherm</p>
-              <h3 className="mt-2 text-xl font-semibold">Importeer adressen uit CSV</h3>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Nu te testen</p>
+              <h3 className="mt-2 text-xl font-semibold">Importeer adressen uit CSV met preview</h3>
             </div>
-            <div className="rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold text-[var(--accent)]">B2B voorstel</div>
+            <div className="rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold text-[var(--accent)]">Live flow</div>
           </div>
 
           <div className="rounded-[28px] border-2 border-dashed border-[var(--border)] bg-white px-5 py-8 text-center shadow-[var(--shadow-soft)]">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-soft)]">
               <Inbox className="h-6 w-6 text-[var(--accent)]" />
             </div>
-            <p className="mt-4 text-base font-semibold">Sleep je CSV hierheen of kies een bestand</p>
+            <p className="mt-4 text-base font-semibold">Upload je CSV in een lijst en controleer eerst de preview</p>
             <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-              Bijvoorbeeld een export uit Excel, een CRM of een bezichtigingsplanning.
+              Bijvoorbeeld een export uit Excel, een CRM of een bezichtigingsplanning. Pas na je controle wordt de lijst echt gevuld.
             </p>
             <div className="mt-4 inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)]">
               .csv • adressenlijst • tot 200 regels
@@ -349,6 +349,21 @@ export default async function MakelaarsPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">3</p>
               <p className="mt-2 text-sm font-semibold">Routevoorstel</p>
             </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <a
+              href="/examples/makelaars-import-voorbeeld.csv"
+              className="flex min-h-12 items-center justify-center rounded-[22px] border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+            >
+              Download voorbeeld-CSV
+            </a>
+            <Link
+              href="/signin"
+              className="flex min-h-12 items-center justify-center rounded-[22px] bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-soft)]"
+            >
+              Open demo-omgeving
+            </Link>
           </div>
         </Card>
       </section>
@@ -414,7 +429,7 @@ export default async function MakelaarsPage() {
               href="/signin"
               className="flex min-h-14 items-center justify-center rounded-[24px] bg-[var(--accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow)]"
             >
-              Vraag een demo aan
+              Open demo-omgeving
             </Link>
             <a
               href="mailto:info@miy24.nl?subject=SamenRoute%20makelaars%20demo"

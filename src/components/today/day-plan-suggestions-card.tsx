@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import type { Route } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { DayPlanShareButton } from "@/components/today/day-plan-share-button";
 
 type DayPlan = {
   dayNumber: number;
   title: string;
   dayType: "CALM" | "BALANCED" | "HIGHLIGHTS";
   dayTheme: "CULTURE" | "FOOD_WALK" | "OUTDOOR" | "MIX";
+  dayMoment: "MORNING" | "LUNCH" | "AFTERNOON" | "EVENING";
   stopIds: string[];
   stopNames: string[];
 };
@@ -35,6 +39,12 @@ export function DayPlanSuggestionsCard({
     foodWalkTheme: string;
     outdoorTheme: string;
     mixTheme: string;
+    morningMoment: string;
+    lunchMoment: string;
+    afternoonMoment: string;
+    eveningMoment: string;
+    shareDay: string;
+    copiedDay: string;
   };
 }) {
   const labels = copy ?? {
@@ -50,7 +60,13 @@ export function DayPlanSuggestionsCard({
     cultureTheme: "Culture",
     foodWalkTheme: "Food & walk",
     outdoorTheme: "Outdoor",
-    mixTheme: "Mixed"
+    mixTheme: "Mixed",
+    morningMoment: "Morning",
+    lunchMoment: "Lunch",
+    afternoonMoment: "Afternoon",
+    eveningMoment: "Evening",
+    shareDay: "Share this day",
+    copiedDay: "Link copied"
   };
 
   if (plans.length < 2) {
@@ -77,6 +93,14 @@ export function DayPlanSuggestionsCard({
                 : plan.dayTheme === "OUTDOOR"
                   ? labels.outdoorTheme
                   : labels.mixTheme;
+          const dayMomentLabel =
+            plan.dayMoment === "MORNING"
+              ? labels.morningMoment
+              : plan.dayMoment === "LUNCH"
+                ? labels.lunchMoment
+                : plan.dayMoment === "EVENING"
+                  ? labels.eveningMoment
+                  : labels.afternoonMoment;
 
           return (
             <div key={plan.dayNumber} className="rounded-2xl bg-[var(--surface-subtle)] p-4">
@@ -87,6 +111,7 @@ export function DayPlanSuggestionsCard({
                     <span>{plan.stopIds.length} {labels.stops}</span>
                     <Badge tone="accent">{dayTypeLabel}</Badge>
                     <Badge>{dayThemeLabel}</Badge>
+                    <Badge>{dayMomentLabel}</Badge>
                   </div>
                 </div>
                 <Badge>{isSelected ? labels.selected : `${plan.stopIds.length} ${labels.stops}`}</Badge>
@@ -104,6 +129,15 @@ export function DayPlanSuggestionsCard({
               >
                 {labels.chooseDay}
               </Link>
+              <div className="mt-2">
+                <DayPlanShareButton
+                  listId={listId}
+                  dayNumber={plan.dayNumber}
+                  title={plan.title}
+                  label={labels.shareDay}
+                  copiedLabel={labels.copiedDay}
+                />
+              </div>
             </div>
           );
         })}

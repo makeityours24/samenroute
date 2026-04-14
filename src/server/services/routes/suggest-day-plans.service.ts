@@ -18,6 +18,7 @@ export type SuggestedDayPlan = {
   title: string;
   dayType: "CALM" | "BALANCED" | "HIGHLIGHTS";
   dayTheme: "CULTURE" | "FOOD_WALK" | "OUTDOOR" | "MIX";
+  dayMoment: "MORNING" | "LUNCH" | "AFTERNOON" | "EVENING";
   stopIds: string[];
   stopNames: string[];
 };
@@ -87,6 +88,30 @@ function getDayTheme(chunk: ListPlaceInput[]) {
   return [...scores.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ?? "MIX";
 }
 
+function getDayMoment(input: {
+  dayType: SuggestedDayPlan["dayType"];
+  dayTheme: SuggestedDayPlan["dayTheme"];
+  index: number;
+}) {
+  if (input.dayTheme === "FOOD_WALK") {
+    return "LUNCH" as const;
+  }
+
+  if (input.index === 0 && input.dayType === "CALM") {
+    return "MORNING" as const;
+  }
+
+  if (input.dayType === "HIGHLIGHTS") {
+    return "AFTERNOON" as const;
+  }
+
+  if (input.index >= 2) {
+    return "EVENING" as const;
+  }
+
+  return "AFTERNOON" as const;
+}
+
 export function suggestDayPlans(input: {
   candidates: ListPlaceInput[];
   stopsPerDay: number;
@@ -110,17 +135,20 @@ export function suggestDayPlans(input: {
     const chunk = ordered.slice(index, index + stopsPerDay);
     const averagePriority = chunk.reduce((sum, item) => sum + item.priority, 0) / chunk.length;
     const dayNumber = plans.length + 1;
+    const dayType = getDayType({
+      chunkSize: chunk.length,
+      averagePriority,
+      totalChunkSize: ordered.length,
+      index: plans.length
+    });
+    const dayTheme = getDayTheme(chunk);
 
     plans.push({
       dayNumber,
       title: `Dag ${dayNumber}`,
-      dayType: getDayType({
-        chunkSize: chunk.length,
-        averagePriority,
-        totalChunkSize: ordered.length,
-        index: plans.length
-      }),
-      dayTheme: getDayTheme(chunk),
+      dayType,
+      dayTheme,
+      dayMoment: getDayMoment({ dayType, dayTheme, index: plans.length }),
       stopIds: chunk.map((item) => item.id),
       stopNames: chunk.map((item) => item.place.name)
     });

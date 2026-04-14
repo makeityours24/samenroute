@@ -14,7 +14,6 @@ import { env } from "@/lib/env/env";
 import { archiveListAction } from "@/app/(app)/actions";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { PlaceRepository } from "@/server/repositories/place.repository";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
@@ -28,6 +27,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import { ListMemberRole } from "@/server/domain/enums";
 import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
 import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
+import { ArrowRight, FileSpreadsheet, MapPinPlusInside } from "lucide-react";
 
 const listRepository = new ListRepository();
 const placeRepository = new PlaceRepository();
@@ -114,6 +114,43 @@ export default async function ListDetailPage({
         }}
         planTodayHref={`/today?listId=${list.id}`}
       />
+      {canMutateList ? (
+        <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] shadow-[var(--shadow)]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Zakelijke werkflow
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Begin hier met importeren, niet met losse adressen overtypen.</h2>
+            <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+              Voor bezichtigingen en andere afspraakdagen werkt dit het prettigst: importeer eerst je adressenlijst, controleer de
+              preview en gebruik handmatige invoer alleen voor uitzonderingen of extra stops.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <a
+              href="#csv-import"
+              className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+            >
+              <span className="flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Open CSV-import
+              </span>
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="#add-place"
+              className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)]"
+            >
+              <span className="flex items-center gap-2">
+                <MapPinPlusInside className="h-4 w-4 text-[var(--accent)]" />
+                Handmatig plek toevoegen
+              </span>
+              <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+            </a>
+          </div>
+        </Card>
+      ) : null}
       {dayPlans.length > 1 ? (
         <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)]">
           <SectionHeader
@@ -128,6 +165,22 @@ export default async function ListDetailPage({
             }
           />
         </Card>
+      ) : null}
+      {canMutateList ? (
+        <details
+          id="csv-import"
+          open={query?.focus === "csv-import" || list.listPlaces.length === 0}
+          className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+        >
+          <summary className="cursor-pointer list-none text-[15px] font-semibold">CSV importeren</summary>
+          <div className="mt-4 space-y-4">
+            <SectionHeader
+              title="Plekken in bulk toevoegen"
+              subtitle="Handig als je al een adressenlijst uit Excel, CRM of planning hebt."
+            />
+            <CsvImportForm action={importListPlacesAction} listId={list.id} />
+          </div>
+        </details>
       ) : null}
       <section className="space-y-3 pt-1">
         <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
@@ -163,21 +216,6 @@ export default async function ListDetailPage({
           copy={dict.listDetail}
         />
       </section>
-      {canMutateList ? (
-        <details
-          open={query?.focus === "csv-import"}
-          className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
-        >
-          <summary className="cursor-pointer list-none text-[15px] font-semibold">CSV importeren</summary>
-          <div className="mt-4 space-y-4">
-            <SectionHeader
-              title="Plekken in bulk toevoegen"
-              subtitle="Handig als je al een adressenlijst uit Excel, CRM of planning hebt."
-            />
-            <CsvImportForm action={importListPlacesAction} listId={list.id} />
-          </div>
-        </details>
-      ) : null}
       {canMutateList ? (
         <details
           id="list-settings"
@@ -227,7 +265,7 @@ export default async function ListDetailPage({
       {canMutateList ? (
         <details id="add-place" className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]" open={Boolean(editingListPlace)}>
         <summary className="cursor-pointer list-none text-[15px] font-semibold">
-          {editingListPlace ? dict.listDetail.edit : dict.listDetail.addPlaceSummary}
+          {editingListPlace ? dict.listDetail.edit : "Handmatig plek toevoegen"}
         </summary>
         <div className="mt-4">
           <PlaceForm

@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { PlannerStepCard } from "@/components/today/planner-step-card";
 import { PlannerStopList } from "@/components/today/planner-stop-list";
-import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 
 type ListOption = { id: string; name: string };
 type StopOption = { id: string; name: string; detail: string; defaultChecked: boolean; recommended?: boolean };
@@ -310,9 +310,9 @@ export function PlannerForm({
         </div>
       </PlannerStepCard>
       <StickyActionBar>
-        <Button type="submit" fullWidth disabled={stops.length === 0}>
+        <FormSubmitButton fullWidth disabled={stops.length === 0} pendingLabel="Route maken...">
           {submitLabel}
-        </Button>
+        </FormSubmitButton>
       </StickyActionBar>
     </form>
   );

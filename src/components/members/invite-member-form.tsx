@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
@@ -38,9 +38,9 @@ export function InviteMemberForm({
   };
 
   const submitButton = (
-    <Button type="submit" fullWidth>
+    <FormSubmitButton fullWidth pendingLabel="Bezig...">
       {submitLabel}
-    </Button>
+    </FormSubmitButton>
   );
 
   return (

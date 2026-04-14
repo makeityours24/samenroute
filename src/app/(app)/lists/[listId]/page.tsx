@@ -17,6 +17,7 @@ import { PlaceRepository } from "@/server/repositories/place.repository";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -206,18 +207,18 @@ export default async function ListDetailPage({
                 placeholder={dict.lists.colorPlaceholder}
                 aria-label={dict.lists.colorLabel}
               />
-              <Button type="submit" fullWidth>
+              <FormSubmitButton fullWidth pendingLabel="Opslaan...">
                 {dict.listDetail.saveList}
-              </Button>
+              </FormSubmitButton>
             </form>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">{dict.listDetail.removeListTitle}</p>
               <p className="mt-1 text-sm text-[var(--muted-foreground)]">{dict.listDetail.removeListBody}</p>
               <form action={archiveListAction} className="mt-3">
                 <input type="hidden" name="listId" value={list.id} />
-                <Button variant="danger" type="submit" fullWidth>
+                <FormSubmitButton variant="danger" fullWidth pendingLabel="Bezig...">
                   {dict.listDetail.removeListButton}
-                </Button>
+                </FormSubmitButton>
               </form>
             </div>
           </div>
@@ -269,9 +270,9 @@ export default async function ListDetailPage({
                   ) : (
                     <span />
                   )}
-                  <Button type="submit" fullWidth>
+                  <FormSubmitButton fullWidth pendingLabel={editingListPlace ? "Opslaan..." : "Toevoegen..."}>
                     {editingListPlace ? dict.listDetail.edit : dict.listDetail.savePlace}
-                  </Button>
+                  </FormSubmitButton>
                 </div>
               </>
             }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useActionState } from "react";
 import { ArrowRight, CheckCircle2, Download, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,9 +92,9 @@ export function MakelaarsDemoIntakeForm({
         aria-label="Korte toelichting"
       />
       {state.status === "error" && state.message ? <p className="text-sm text-[var(--danger)]">{state.message}</p> : null}
-      <Button type="submit" fullWidth>
+      <FormSubmitButton fullWidth pendingLabel="Versturen...">
         Verstuur demo-aanvraag
-      </Button>
+      </FormSubmitButton>
     </form>
   );
 }

@@ -4,6 +4,7 @@ import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ListCard } from "@/components/lists/list-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/ui/page-container";
@@ -49,10 +50,10 @@ export default async function ListsPage() {
               aria-label="Zakelijke lijstomschrijving"
             />
             <Input name="coverColor" placeholder="#1F7A5C" aria-label="Lijstkleur" />
-            <Button type="submit" fullWidth>
+            <FormSubmitButton fullWidth pendingLabel="Bezig...">
               Maak lijst en open CSV-import
               <ArrowRight className="h-4 w-4" />
-            </Button>
+            </FormSubmitButton>
           </form>
           <div className="space-y-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
             <div>
@@ -106,9 +107,9 @@ export default async function ListsPage() {
               <div className="flex justify-end pr-1">
                 <form action={duplicateListAction}>
                   <input type="hidden" name="listId" value={list.id} />
-                  <Button type="submit" variant="ghost" size="sm">
+                  <FormSubmitButton type="submit" variant="ghost" size="sm" pendingLabel="Bezig...">
                     {dict.lists.duplicate}
-                  </Button>
+                  </FormSubmitButton>
                 </form>
               </div>
             </div>
@@ -158,9 +159,9 @@ export default async function ListsPage() {
           <Textarea name="description" placeholder={dict.lists.descriptionPlaceholder} aria-label={dict.lists.descriptionLabel} />
           <Input name="coverColor" placeholder={dict.lists.colorPlaceholder} aria-label={dict.lists.colorLabel} />
           <StickyActionBar>
-            <Button type="submit" fullWidth>
+            <FormSubmitButton fullWidth pendingLabel="Bezig...">
               {dict.lists.createButton}
-            </Button>
+            </FormSubmitButton>
           </StickyActionBar>
         </form>
       </details>

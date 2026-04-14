@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, FileSpreadsheet } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, FileSpreadsheet, FolderOpen, Route } from "lucide-react";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ActiveListCard } from "@/components/home/active-list-card";
 import { ActiveDayStatusCard } from "@/components/home/active-day-status-card";
-import { ActiveRouteBanner } from "@/components/home/active-route-banner";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
 import { ProactivePlanningCard } from "@/components/home/proactive-planning-card";
 import { ProgressSummaryCard } from "@/components/home/progress-summary-card";
@@ -74,33 +73,74 @@ export default async function HomePage() {
           <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
             {dict.home.flowHint}
           </div>
-          <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-              <BriefcaseBusiness className="h-4 w-4 text-[var(--accent)]" />
-              Zakelijke werkflow
+          <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)] sm:p-5">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+              <BriefcaseBusiness className="h-3.5 w-3.5" />
+              Werkdag-dashboard
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-[var(--foreground)]">Werk verder in je actieve lijst</p>
-              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
-                Gebruik je huidige lijst als vertrekpunt: open direct de CSV-import voor extra adressen of werk meteen de dagvolgorde uit.
+            <div className="space-y-2">
+              <h2 className="max-w-2xl text-xl font-semibold leading-tight text-[var(--foreground)] sm:text-2xl">
+                Werk eerst je adressenlijst bij, bepaal daarna pas de dagvolgorde.
+              </h2>
+              <p className="max-w-3xl text-sm leading-6 text-[var(--muted-foreground)]">
+                Gebruik je actieve lijst als vaste basis. Vul nieuwe adressen aan via CSV of handmatig, controleer daarna de
+                volgorde voor vandaag en open pas dan navigatie.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-2xl bg-white/85 p-3">
+                <p className="text-xs text-[var(--muted-foreground)]">Open adressen</p>
+                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{pendingCount}</p>
+              </div>
+              <div className="rounded-2xl bg-white/85 p-3">
+                <p className="text-xs text-[var(--muted-foreground)]">Afgerond</p>
+                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{visited.length}</p>
+              </div>
+              <div className="rounded-2xl bg-white/85 p-3">
+                <p className="text-xs text-[var(--muted-foreground)]">Routesessie</p>
+                <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+                  {summary.routePlans[0] ? dict.home.yes : dict.home.no}
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-3">
               <Link
                 href={`/lists/${summary.id}?focus=csv-import#csv-import`}
-                className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+                className="flex min-h-24 items-start justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
               >
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Open CSV-import
-                </span>
+                <div className="space-y-2">
+                  <span className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Open CSV-import
+                  </span>
+                  <p className="text-left text-xs font-medium leading-5 text-white/80">Voeg extra adressen toe uit een bestand</p>
+                </div>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href={`/today?listId=${summary.id}`}
-                className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+                className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
               >
-                <span>Werk de dagvolgorde uit</span>
+                <div className="space-y-2">
+                  <span className="flex items-center gap-2">
+                    <Route className="h-4 w-4 text-[var(--accent)]" />
+                    Werk dagvolgorde uit
+                  </span>
+                  <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">Laat SamenRoute de dag rustig ordenen</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+              </Link>
+              <Link
+                href={`/lists/${summary.id}`}
+                className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+              >
+                <div className="space-y-2">
+                  <span className="flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4 text-[var(--accent)]" />
+                    Open actieve lijst
+                  </span>
+                  <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">Bekijk, corrigeer of vul handmatig aan</p>
+                </div>
                 <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
               </Link>
             </div>
@@ -125,14 +165,6 @@ export default async function HomePage() {
             planTodayLabel={dict.home.planToday}
             planTodayHint={dict.home.planTodayHint}
             planTodayHref={`/today?listId=${summary.id}`}
-          />
-          <ProgressSummaryCard
-            placesLeft={pendingCount}
-            hasActiveRoute={Boolean(summary.routePlans[0])}
-            placesLeftLabel={dict.home.placesLeft}
-            routeInProgressLabel={dict.home.routeInProgress}
-            yesLabel={dict.home.yes}
-            noLabel={dict.home.no}
           />
           {proactiveDayPlan ? (
             <ProactivePlanningCard
@@ -164,18 +196,6 @@ export default async function HomePage() {
               }
             />
           ) : null}
-          {behavior ? (
-            <BehaviorInsightsCard
-              title={dict.home.behaviorTitle}
-              subtitle={dict.home.behaviorSubtitle}
-              categories={behavior.topCategories}
-              topCategoriesLabel={dict.home.behaviorTopCategories}
-              favoritesLabel={dict.home.behaviorFavorites}
-              favoritesCount={behavior.favoriteCount}
-              visitsLabel={dict.home.behaviorVisits}
-              visitsCount={behavior.visitedCount}
-            />
-          ) : null}
           {summary.routePlans[0] ? (
             <ActiveDayStatusCard
               title={dict.home.currentRoute}
@@ -194,6 +214,14 @@ export default async function HomePage() {
               href={`/route/${summary.routePlans[0].id}`}
             />
           ) : null}
+          <ProgressSummaryCard
+            placesLeft={pendingCount}
+            hasActiveRoute={Boolean(summary.routePlans[0])}
+            placesLeftLabel={dict.home.placesLeft}
+            routeInProgressLabel={dict.home.routeInProgress}
+            yesLabel={dict.home.yes}
+            noLabel={dict.home.no}
+          />
           <section className="space-y-3 pt-1">
             <SectionHeader title={dict.home.recentVisited} subtitle={dict.home.recentVisitedSubtitle} />
             {visited.length > 0 ? (
@@ -209,6 +237,18 @@ export default async function HomePage() {
               <EmptyState title={dict.home.noVisits} description={dict.home.noVisitsBody} />
             )}
           </section>
+          {behavior ? (
+            <BehaviorInsightsCard
+              title="Werkpatroon uit eerdere dagen"
+              subtitle="Deze signalen helpen om toekomstige dagindelingen sneller te controleren."
+              categories={behavior.topCategories}
+              topCategoriesLabel={dict.home.behaviorTopCategories}
+              favoritesLabel={dict.home.behaviorFavorites}
+              favoritesCount={behavior.favoriteCount}
+              visitsLabel={dict.home.behaviorVisits}
+              visitsCount={behavior.visitedCount}
+            />
+          ) : null}
         </>
       ) : (
         <>

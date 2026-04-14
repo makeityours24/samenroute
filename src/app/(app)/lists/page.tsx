@@ -205,7 +205,13 @@ export default async function ListsPage() {
                 ) : null}
                 <form action={duplicateListAction}>
                   <input type="hidden" name="listId" value={list.id} />
-                  <FormSubmitButton type="submit" variant="ghost" size="sm" pendingLabel="Bezig...">
+                  <FormSubmitButton
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    pendingLabel="Bezig..."
+                    className="min-h-8 rounded-xl px-2.5 text-xs font-medium text-[var(--muted-foreground)]"
+                  >
                     {dict.lists.duplicate}
                   </FormSubmitButton>
                 </form>
@@ -248,7 +254,13 @@ export default async function ListsPage() {
                 <div className="flex justify-end pr-1">
                   <form action={deleteArchivedListAction}>
                     <input type="hidden" name="listId" value={list.id} />
-                    <FormSubmitButton type="submit" variant="danger" size="sm" pendingLabel="Bezig...">
+                    <FormSubmitButton
+                      type="submit"
+                      variant="ghost"
+                      size="sm"
+                      pendingLabel="Bezig..."
+                      className="min-h-8 rounded-xl px-2.5 text-xs font-medium text-[var(--danger)]"
+                    >
                       {dict.lists.deleteArchivedButton}
                     </FormSubmitButton>
                   </form>

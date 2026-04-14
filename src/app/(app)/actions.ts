@@ -24,6 +24,8 @@ import { updatePlaceService } from "@/server/services/places/update-place.servic
 import { ListPlaceRepository } from "@/server/repositories/list-place.repository";
 import { AppError } from "@/server/services/errors";
 import { submitMakelaarsDemoRequestService } from "@/server/services/marketing/submit-makelaars-demo-request.service";
+import { saveListPlacePreferenceService } from "@/server/services/list-places/save-list-place-preference.service";
+import { confirmDayPlanService } from "@/server/services/routes/confirm-day-plan.service";
 
 const listRepository = new ListRepository();
 const listPlaceRepository = new ListPlaceRepository();
@@ -421,5 +423,37 @@ export async function addRouteSuggestionAction(formData: FormData) {
 
   revalidatePath(`/route/${routePlanId}`);
   revalidatePath("/today");
+  revalidatePath("/home");
+}
+
+export async function saveListPlacePreferenceAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const listId = String(formData.get("listId") ?? "");
+
+  await saveListPlacePreferenceService(user, {
+    listId,
+    listPlaceId: String(formData.get("listPlaceId") ?? ""),
+    preference: String(formData.get("preference") ?? "")
+  });
+
+  revalidatePath(`/lists/${listId}`);
+  revalidatePath("/today");
+  revalidatePath("/home");
+}
+
+export async function confirmDayPlanAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const listId = String(formData.get("listId") ?? "");
+  const stopIds = formData.getAll("stopIds").map(String).filter(Boolean);
+
+  await confirmDayPlanService(user, {
+    listId,
+    dayNumber: Number(formData.get("dayNumber") ?? 0),
+    dayTitle: String(formData.get("dayTitle") ?? ""),
+    stopIds
+  });
+
+  revalidatePath(`/today?listId=${listId}`);
+  revalidatePath(`/lists/${listId}`);
   revalidatePath("/home");
 }

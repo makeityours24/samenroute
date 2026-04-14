@@ -29,4 +29,38 @@ export class ActivityLogRepository {
       take: 50
     });
   }
+
+  async listPlacePreferenceLogs(input: {
+    listId: string;
+    listPlaceIds: string[];
+    actionType: string;
+    actorUserId?: string;
+  }) {
+    return prisma.activityLog.findMany({
+      where: {
+        ...(input.actorUserId ? { actorUserId: input.actorUserId } : {}),
+        listId: input.listId,
+        entityType: "PLACE",
+        entityId: {
+          in: input.listPlaceIds
+        },
+        actionType: input.actionType
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+  }
+
+  async findLatestByAction(input: { listId: string; actionType: string }) {
+    return prisma.activityLog.findFirst({
+      where: {
+        listId: input.listId,
+        actionType: input.actionType
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+  }
 }

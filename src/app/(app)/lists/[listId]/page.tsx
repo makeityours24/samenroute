@@ -27,6 +27,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import { ListMemberRole } from "@/server/domain/enums";
 import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
 import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
+import { getUserListPlacePreferencesService } from "@/server/services/list-places/get-user-list-place-preferences.service";
 import { ArrowRight, FileSpreadsheet, MapPinPlusInside } from "lucide-react";
 
 const listRepository = new ListRepository();
@@ -61,6 +62,13 @@ export default async function ListDetailPage({
   const canMutateList = membershipRole === ListMemberRole.OWNER || membershipRole === ListMemberRole.EDITOR;
   const canManageMembers = membershipRole === ListMemberRole.OWNER;
   const behavior = user ? await getUserBehaviorInsightsService(user.id) : null;
+  const listPlacePreferences = user
+    ? await getUserListPlacePreferencesService({
+        userId: user.id,
+        listId: list.id,
+        listPlaceIds: list.listPlaces.map((item) => item.id)
+      })
+    : new Map();
   const dayPlans =
     behavior
       ? suggestDayPlans({
@@ -210,10 +218,18 @@ export default async function ListDetailPage({
             includeInRoute: item.includeInRoute,
             createdAt: item.createdAt.toISOString(),
             visitedAt: item.visitedAt?.toISOString() ?? null,
-            visitedByName: item.visitedByUser?.name ?? item.visitedByUser?.email ?? null
+            visitedByName: item.visitedByUser?.name ?? item.visitedByUser?.email ?? null,
+            currentPreference: listPlacePreferences.get(item.id)
           }))}
           returnPath={`/lists/${list.id}`}
-          copy={dict.listDetail}
+          copy={{
+            ...dict.listDetail,
+            preferenceTitle: dict.listDetail.preferenceTitle,
+            preferenceToday: dict.listDetail.preferenceToday,
+            preferenceLater: dict.listDetail.preferenceLater,
+            preferenceMustSee: dict.listDetail.preferenceMustSee,
+            preferenceSkipForNow: dict.listDetail.preferenceSkipForNow
+          }}
         />
       </section>
       {canMutateList ? (

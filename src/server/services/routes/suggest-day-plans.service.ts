@@ -5,6 +5,12 @@ type ListPlaceInput = {
   id: string;
   priority: number;
   sortOrder: number;
+  preferenceSignals?: {
+    todayCount: number;
+    laterCount: number;
+    mustSeeCount: number;
+    skipCount: number;
+  };
   place: {
     name: string;
     latitude: unknown;
@@ -19,6 +25,10 @@ export type SuggestedDayPlan = {
   dayType: "CALM" | "BALANCED" | "HIGHLIGHTS";
   dayTheme: "CULTURE" | "FOOD_WALK" | "OUTDOOR" | "MIX";
   dayMoment: "MORNING" | "LUNCH" | "AFTERNOON" | "EVENING";
+  todayVotes: number;
+  mustSeeVotes: number;
+  laterVotes: number;
+  skipVotes: number;
   stopIds: string[];
   stopNames: string[];
 };
@@ -122,12 +132,21 @@ export function suggestDayPlans(input: {
   }
 
   const stopsPerDay = Math.max(2, input.stopsPerDay);
+  const enrichedCandidates = input.candidates.map((candidate) => ({
+    ...candidate,
+    priority:
+      candidate.priority +
+      (candidate.preferenceSignals?.mustSeeCount ?? 0) * 2 +
+      (candidate.preferenceSignals?.todayCount ?? 0) -
+      (candidate.preferenceSignals?.laterCount ?? 0) -
+      (candidate.preferenceSignals?.skipCount ?? 0)
+  }));
   const ordered = orderRouteCandidates({
     transportMode: input.transportMode,
     routeOrderingStrategy: "FASTEST",
-    candidates: input.candidates,
-    maxStops: input.candidates.length
-  });
+    candidates: enrichedCandidates,
+    maxStops: enrichedCandidates.length
+  }) as ListPlaceInput[];
 
   const plans: SuggestedDayPlan[] = [];
 
@@ -149,6 +168,10 @@ export function suggestDayPlans(input: {
       dayType,
       dayTheme,
       dayMoment: getDayMoment({ dayType, dayTheme, index: plans.length }),
+      todayVotes: chunk.reduce((sum, item) => sum + (item.preferenceSignals?.todayCount ?? 0), 0),
+      mustSeeVotes: chunk.reduce((sum, item) => sum + (item.preferenceSignals?.mustSeeCount ?? 0), 0),
+      laterVotes: chunk.reduce((sum, item) => sum + (item.preferenceSignals?.laterCount ?? 0), 0),
+      skipVotes: chunk.reduce((sum, item) => sum + (item.preferenceSignals?.skipCount ?? 0), 0),
       stopIds: chunk.map((item) => item.id),
       stopNames: chunk.map((item) => item.place.name)
     });

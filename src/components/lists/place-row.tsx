@@ -15,6 +15,7 @@ export function PlaceRow({
   isFavorite,
   includeInRoute,
   smartSignals,
+  preferenceSection,
   primaryActions,
   secondaryActions,
   copy
@@ -28,6 +29,7 @@ export function PlaceRow({
   isFavorite: boolean;
   includeInRoute: boolean;
   smartSignals?: string[];
+  preferenceSection?: ReactNode;
   primaryActions?: ReactNode;
   secondaryActions?: ReactNode;
   copy?: {
@@ -79,6 +81,7 @@ export function PlaceRow({
           </div>
         </div>
       ) : null}
+      {preferenceSection ? preferenceSection : null}
       {primaryActions ? <div className="grid min-w-0 grid-cols-1 gap-2">{primaryActions}</div> : null}
     </Card>
   );

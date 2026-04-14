@@ -15,9 +15,11 @@ import { ListRepository } from "@/server/repositories/list.repository";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
 import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
+import { ListDayPlanSelectionRepository } from "@/server/repositories/list-day-plan-selection.repository";
 import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
 
 const listRepository = new ListRepository();
+const listDayPlanSelectionRepository = new ListDayPlanSelectionRepository();
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -25,6 +27,7 @@ export default async function HomePage() {
   const summary = user ? await listRepository.getHomeSummary(user.id) : null;
   const behavior = user ? await getUserBehaviorInsightsService(user.id) : null;
   const activeListDetail = user && summary ? await listRepository.findDetail(summary.id, user.id) : null;
+  const confirmedDayPlan = summary ? await listDayPlanSelectionRepository.findLatest(summary.id) : null;
   const pendingCount = summary?.listPlaces.filter((item) => item.status === "PLANNED").length ?? 0;
   const visited = summary?.listPlaces.filter((item) => item.status === "VISITED").slice(0, 3) ?? [];
   const dayPlans =
@@ -48,10 +51,16 @@ export default async function HomePage() {
         })
       : [];
   const proactiveDayPlan = !summary?.routePlans[0] && dayPlans.length > 1 ? dayPlans[0] : null;
+  const selectedConfirmedPlan = confirmedDayPlan?.dayNumber ? dayPlans.find((plan) => plan.dayNumber === confirmedDayPlan.dayNumber) : null;
   const proactiveDayBody = proactiveDayPlan
     ? dict.home.proactiveMultiDayBody
         .replace("{day}", proactiveDayPlan.title)
         .replace("{count}", String(proactiveDayPlan.stopIds.length))
+    : "";
+  const confirmedDayBody = selectedConfirmedPlan
+    ? dict.home.confirmedDayBody
+        .replace("{day}", selectedConfirmedPlan.title)
+        .replace("{count}", String(selectedConfirmedPlan.stopIds.length))
     : "";
   const isSharedList = (activeListDetail?.members.length ?? 0) > 1;
 
@@ -91,18 +100,32 @@ export default async function HomePage() {
           />
           {proactiveDayPlan ? (
             <ProactivePlanningCard
-              eyebrow={dict.home.proactivePlanningEyebrow}
-              title={dict.home.proactiveMultiDayTitle.replace("{count}", String(dayPlans.length))}
-              body={proactiveDayBody}
+              eyebrow={selectedConfirmedPlan ? dict.home.confirmedDayEyebrow : dict.home.proactivePlanningEyebrow}
+              title={
+                selectedConfirmedPlan
+                  ? dict.home.confirmedDayTitle.replace("{day}", selectedConfirmedPlan.title)
+                  : dict.home.proactiveMultiDayTitle.replace("{count}", String(dayPlans.length))
+              }
+              body={selectedConfirmedPlan ? confirmedDayBody : proactiveDayBody}
               steps={[
-                dict.home.proactiveStepList,
-                dict.home.proactiveStepDay.replace("{day}", proactiveDayPlan.title),
-                dict.home.proactiveStepRoute
+                selectedConfirmedPlan
+                  ? dict.home.confirmedStepOne.replace("{day}", selectedConfirmedPlan.title)
+                  : dict.home.proactiveStepList,
+                selectedConfirmedPlan
+                  ? dict.home.confirmedStepTwo
+                  : dict.home.proactiveStepDay.replace("{day}", proactiveDayPlan.title),
+                selectedConfirmedPlan
+                  ? dict.home.confirmedStepThree
+                  : dict.home.proactiveStepRoute
               ]}
-              buttonLabel={dict.home.proactiveMultiDayCta}
-              href={`/today?listId=${summary.id}&day=${proactiveDayPlan.dayNumber}`}
+              buttonLabel={selectedConfirmedPlan ? dict.home.confirmedDayCta : dict.home.proactiveMultiDayCta}
+              href={`/today?listId=${summary.id}&day=${selectedConfirmedPlan?.dayNumber ?? proactiveDayPlan.dayNumber}`}
               secondaryLabel={isSharedList ? dict.home.proactiveShareCta : undefined}
-              secondaryHref={isSharedList ? `/today?listId=${summary.id}&day=${proactiveDayPlan.dayNumber}` : undefined}
+              secondaryHref={
+                isSharedList
+                  ? `/today?listId=${summary.id}&day=${selectedConfirmedPlan?.dayNumber ?? proactiveDayPlan.dayNumber}`
+                  : undefined
+              }
             />
           ) : null}
           {behavior ? (

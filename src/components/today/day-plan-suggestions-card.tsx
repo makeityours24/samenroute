@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import type { Route } from "next";
+import { confirmDayPlanAction } from "@/app/(app)/actions";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DayPlanShareButton } from "@/components/today/day-plan-share-button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 
 type DayPlan = {
   dayNumber: number;
@@ -12,6 +14,10 @@ type DayPlan = {
   dayType: "CALM" | "BALANCED" | "HIGHLIGHTS";
   dayTheme: "CULTURE" | "FOOD_WALK" | "OUTDOOR" | "MIX";
   dayMoment: "MORNING" | "LUNCH" | "AFTERNOON" | "EVENING";
+  todayVotes: number;
+  mustSeeVotes: number;
+  laterVotes: number;
+  skipVotes: number;
   stopIds: string[];
   stopNames: string[];
 };
@@ -20,11 +26,13 @@ export function DayPlanSuggestionsCard({
   listId,
   plans,
   selectedDay,
+  confirmedDay,
   copy
 }: {
   listId: string;
   plans: DayPlan[];
   selectedDay?: number;
+  confirmedDay?: number;
   copy?: {
     badge: string;
     title: string;
@@ -45,6 +53,13 @@ export function DayPlanSuggestionsCard({
     eveningMoment: string;
     shareDay: string;
     copiedDay: string;
+    mustSeeSignal: string;
+    todaySignal: string;
+    laterSignal: string;
+    skipSignal: string;
+    confirmDay: string;
+    confirmed: string;
+    confirmedByGroup: string;
   };
 }) {
   const labels = copy ?? {
@@ -66,7 +81,14 @@ export function DayPlanSuggestionsCard({
     afternoonMoment: "Afternoon",
     eveningMoment: "Evening",
     shareDay: "Share this day",
-    copiedDay: "Link copied"
+    copiedDay: "Link copied",
+    mustSeeSignal: "must-see",
+    todaySignal: "want this today",
+    laterSignal: "prefer later",
+    skipSignal: "not now",
+    confirmDay: "Confirm this day",
+    confirmed: "Confirmed",
+    confirmedByGroup: "Chosen plan"
   };
 
   if (plans.length < 2) {
@@ -83,6 +105,7 @@ export function DayPlanSuggestionsCard({
       <div className="space-y-3">
         {plans.map((plan) => {
           const isSelected = selectedDay === plan.dayNumber;
+          const isConfirmed = confirmedDay === plan.dayNumber;
           const dayTypeLabel =
             plan.dayType === "CALM" ? labels.calmType : plan.dayType === "HIGHLIGHTS" ? labels.highlightsType : labels.balancedType;
           const dayThemeLabel =
@@ -114,7 +137,7 @@ export function DayPlanSuggestionsCard({
                     <Badge>{dayMomentLabel}</Badge>
                   </div>
                 </div>
-                <Badge>{isSelected ? labels.selected : `${plan.stopIds.length} ${labels.stops}`}</Badge>
+                <Badge>{isConfirmed ? labels.confirmed : isSelected ? labels.selected : `${plan.stopIds.length} ${labels.stops}`}</Badge>
               </div>
               <ol className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
                 {plan.stopNames.map((stop, index) => (
@@ -123,12 +146,31 @@ export function DayPlanSuggestionsCard({
                   </li>
                 ))}
               </ol>
+              {plan.todayVotes > 0 || plan.mustSeeVotes > 0 || plan.laterVotes > 0 || plan.skipVotes > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--muted-foreground)]">
+                  {plan.mustSeeVotes > 0 ? <Badge tone="accent">{plan.mustSeeVotes} {labels.mustSeeSignal}</Badge> : null}
+                  {plan.todayVotes > 0 ? <Badge>{plan.todayVotes} {labels.todaySignal}</Badge> : null}
+                  {plan.laterVotes > 0 ? <Badge>{plan.laterVotes} {labels.laterSignal}</Badge> : null}
+                  {plan.skipVotes > 0 ? <Badge tone="warning">{plan.skipVotes} {labels.skipSignal}</Badge> : null}
+                </div>
+              ) : null}
               <Link
                 href={`/today?listId=${encodeURIComponent(listId)}&day=${plan.dayNumber}` as Route}
                 className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
               >
                 {labels.chooseDay}
               </Link>
+              <form action={confirmDayPlanAction} className="mt-2">
+                <input type="hidden" name="listId" value={listId} />
+                <input type="hidden" name="dayNumber" value={plan.dayNumber} />
+                <input type="hidden" name="dayTitle" value={plan.title} />
+                {plan.stopIds.map((stopId) => (
+                  <input key={`${plan.dayNumber}-${stopId}`} type="hidden" name="stopIds" value={stopId} />
+                ))}
+                <FormSubmitButton fullWidth pendingLabel="Bevestigen...">
+                  {isConfirmed ? labels.confirmedByGroup : labels.confirmDay}
+                </FormSubmitButton>
+              </form>
               <div className="mt-2">
                 <DayPlanShareButton
                   listId={listId}

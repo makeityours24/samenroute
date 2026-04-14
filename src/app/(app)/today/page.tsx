@@ -14,9 +14,12 @@ import { canMutateList } from "@/server/domain/policies/list-policy";
 import { ListMemberRole } from "@/server/domain/enums";
 import { getDictionary } from "@/lib/i18n/server";
 import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
+import { getListPlacePreferenceInsightsService } from "@/server/services/list-places/get-list-place-preference-insights.service";
+import { ListDayPlanSelectionRepository } from "@/server/repositories/list-day-plan-selection.repository";
 import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
 
 const listRepository = new ListRepository();
+const listDayPlanSelectionRepository = new ListDayPlanSelectionRepository();
 
 export default async function TodayPage({
   searchParams
@@ -66,6 +69,13 @@ export default async function TodayPage({
         : null;
   const recommendedStopIds = new Set(behavior?.recommendedListPlaceIds ?? []);
   const hasSuggestedDayPlan = !detail?.routePlans[0] && recommendedStopIds.size > 0;
+  const preferenceInsights = detail
+    ? await getListPlacePreferenceInsightsService({
+        listId: detail.id,
+        listPlaceIds: detail.listPlaces.map((item) => item.id)
+      })
+    : new Map();
+  const confirmedDayPlan = detail ? await listDayPlanSelectionRepository.findLatest(detail.id) : null;
   const dayPlans =
     detail && behavior
       ? suggestDayPlans({
@@ -75,6 +85,7 @@ export default async function TodayPage({
               id: item.id,
               priority: item.priority,
               sortOrder: item.sortOrder,
+              preferenceSignals: preferenceInsights.get(item.id),
               place: {
                 name: item.place.name,
                 latitude: item.place.latitude,
@@ -126,6 +137,7 @@ export default async function TodayPage({
               listId={detail.id}
               plans={dayPlans}
               selectedDay={selectedDayPlan?.dayNumber}
+              confirmedDay={confirmedDayPlan?.dayNumber ?? undefined}
               copy={{
                 badge: dict.today.dayPlansBadge,
                 title: dict.today.dayPlansTitle,
@@ -145,7 +157,14 @@ export default async function TodayPage({
                 afternoonMoment: dict.today.dayPlansAfternoonMoment,
                 eveningMoment: dict.today.dayPlansEveningMoment,
                 shareDay: dict.today.dayPlansShareDay,
-                copiedDay: dict.today.dayPlansCopiedDay
+                copiedDay: dict.today.dayPlansCopiedDay,
+                mustSeeSignal: dict.today.dayPlansMustSeeSignal,
+                todaySignal: dict.today.dayPlansTodaySignal,
+                laterSignal: dict.today.dayPlansLaterSignal,
+                skipSignal: dict.today.dayPlansSkipSignal,
+                confirmDay: dict.today.dayPlansConfirmDay,
+                confirmed: dict.today.dayPlansConfirmed,
+                confirmedByGroup: dict.today.dayPlansConfirmedByGroup
               }}
             />
           ) : null}
@@ -193,6 +212,8 @@ export default async function TodayPage({
                             ? dict.today.dayPlansOutdoorTheme
                             : dict.today.dayPlansMixTheme
                     )
+                    .replace("{mustSee}", String(selectedDayPlan.mustSeeVotes))
+                    .replace("{todayVotes}", String(selectedDayPlan.todayVotes))
               : hasSuggestedDayPlan
                 ? dict.today.smartProposalSummary
                     .replace("{count}", String(recommendedStopIds.size))

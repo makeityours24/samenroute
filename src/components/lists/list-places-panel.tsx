@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { deleteListPlaceAction, markSkippedAction, markVisitedAction, reorderListPlaceAction, toggleFavoriteListPlaceAction } from "@/app/(app)/actions";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PlacePreferenceChips } from "@/components/lists/place-preference-chips";
 import { Select } from "@/components/ui/select";
 import { PlaceFilters } from "@/components/lists/place-filters";
 import { PlaceRow } from "@/components/lists/place-row";
+import type { ListPlacePreferenceValue } from "@/server/repositories/list-place-preference.repository";
 
 type PlaceItem = {
   id: string;
@@ -23,6 +25,7 @@ type PlaceItem = {
   createdAt: string;
   visitedAt?: string | null;
   visitedByName?: string | null;
+  currentPreference?: ListPlacePreferenceValue;
 };
 
 function getDaysSince(value: string) {
@@ -101,6 +104,11 @@ export function ListPlacesPanel({
     priorityLabel: string;
     openActions: string;
     smartSignalsLabel: string;
+    preferenceTitle: string;
+    preferenceToday: string;
+    preferenceLater: string;
+    preferenceMustSee: string;
+    preferenceSkipForNow: string;
     smartSignalFavorite: string;
     smartSignalOldOpen: string;
     smartSignalRouteCandidate: string;
@@ -130,6 +138,11 @@ export function ListPlacesPanel({
     priorityLabel: "Priority",
     openActions: "Open actions",
     smartSignalsLabel: "Smart signals",
+    preferenceTitle: "Your preference",
+    preferenceToday: "Today",
+    preferenceLater: "Later",
+    preferenceMustSee: "Must-see",
+    preferenceSkipForNow: "Not now",
     smartSignalFavorite: "Favorite",
     smartSignalOldOpen: "Open for a while",
     smartSignalRouteCandidate: "Strong route candidate",
@@ -216,6 +229,22 @@ export function ListPlacesPanel({
                     </Button>
                   </form>
                 </>
+              }
+              preferenceSection={
+                item.status === "PLANNED" ? (
+                  <PlacePreferenceChips
+                    listId={item.listId}
+                    listPlaceId={item.id}
+                    currentPreference={item.currentPreference}
+                    title={labels.preferenceTitle}
+                    options={[
+                      { value: "TODAY", label: labels.preferenceToday },
+                      { value: "LATER", label: labels.preferenceLater },
+                      { value: "MUST_SEE", label: labels.preferenceMustSee },
+                      { value: "SKIP_FOR_NOW", label: labels.preferenceSkipForNow }
+                    ]}
+                  />
+                ) : null
               }
               secondaryActions={
                 <>

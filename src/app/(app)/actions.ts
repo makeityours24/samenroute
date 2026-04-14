@@ -14,6 +14,7 @@ import { reorderListPlacesService } from "@/server/services/list-places/reorder-
 import { updateListPlaceService } from "@/server/services/list-places/update-list-place.service";
 import { shareListService } from "@/server/services/lists/share-list.service";
 import { archiveListService } from "@/server/services/lists/archive-list.service";
+import { deleteArchivedListService } from "@/server/services/lists/delete-archived-list.service";
 import { duplicateListService } from "@/server/services/lists/duplicate-list.service";
 import { importListPlacesService } from "@/server/services/lists/import-list-places.service";
 import { completeRouteStopService } from "@/server/services/routes/complete-route-stop.service";
@@ -141,6 +142,7 @@ export async function generateRouteAction(formData: FormData) {
   const user = await requireUserOrThrow();
   const listId = String(formData.get("listId") ?? "");
   const listPlaceIds = formData.getAll("listPlaceIds").map(String).filter(Boolean);
+  const fixedListPlaceIds = formData.getAll("fixedListPlaceIds").map(String).filter(Boolean);
 
   if (listPlaceIds.length === 0) {
     redirect(`/today?listId=${listId}&error=no-stops`);
@@ -152,6 +154,7 @@ export async function generateRouteAction(formData: FormData) {
     transportMode: String(formData.get("transportMode") ?? "WALKING"),
     routeOrderingStrategy: String(formData.get("routeOrderingStrategy") ?? "FASTEST"),
     listPlaceIds,
+    fixedListPlaceIds,
     maxStops: Number(formData.get("maxStops") ?? 4),
     startPlaceLabel: String(formData.get("startPlaceLabel") ?? "") || undefined,
     startLatitude: formData.get("startLatitude") ? Number(formData.get("startLatitude")) : undefined,
@@ -338,6 +341,16 @@ export async function archiveListAction(formData: FormData) {
   const listId = String(formData.get("listId") ?? "");
   await archiveListService(listId, user);
   revalidatePath("/lists");
+  redirect("/lists");
+}
+
+export async function deleteArchivedListAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const listId = String(formData.get("listId") ?? "");
+  await deleteArchivedListService(listId, user);
+  revalidatePath("/lists");
+  revalidatePath("/home");
+  revalidatePath("/history");
   redirect("/lists");
 }
 

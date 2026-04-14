@@ -38,6 +38,12 @@ export class ListRepository {
     });
   }
 
+  async remove(listId: string) {
+    return prisma.list.delete({
+      where: { id: listId }
+    });
+  }
+
   async duplicate(listId: string, ownerUserId: string, name: string) {
     const source = await prisma.list.findUniqueOrThrow({
       where: { id: listId },

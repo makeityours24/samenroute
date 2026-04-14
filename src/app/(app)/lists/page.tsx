@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/auth";
-import { createListAction, createListAndOpenImportAction, duplicateListAction } from "@/app/(app)/actions";
+import { createListAction, createListAndOpenImportAction, deleteArchivedListAction, duplicateListAction } from "@/app/(app)/actions";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ListCard } from "@/components/lists/list-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -220,49 +220,62 @@ export default async function ListsPage() {
         <section className="space-y-3">
           <SectionHeader title={dict.lists.archivedTitle} subtitle={dict.lists.archivedSubtitle} />
           {archivedLists.map((list) => (
-            <ListCard
-              key={list.id}
-              href={`/lists/${list.id}`}
-              name={list.name}
-              description={list.description}
-              placeCount={list._count.listPlaces}
-              visitedCount={0}
-              shared={list.members.length > 1}
-              membershipLabel={
-                user
-                  ? list.ownerUserId === user.id
-                    ? dict.members.owner
-                    : (list.members.find((member) => member.userId === user.id)?.role === "EDITOR" ? dict.members.editor : dict.members.viewer)
-                  : undefined
-              }
-              copy={{
-                shared: dict.lists.shared,
-                private: dict.lists.private,
-                noDescription: dict.lists.noDescription,
-                placesCount: dict.lists.placesCount,
-                visitedCount: dict.lists.visitedCount,
-                rolePrefix: dict.lists.rolePrefix
-              }}
-            />
+            <div key={list.id} className="space-y-2">
+              <ListCard
+                href={`/lists/${list.id}`}
+                name={list.name}
+                description={list.description}
+                placeCount={list._count.listPlaces}
+                visitedCount={0}
+                shared={list.members.length > 1}
+                membershipLabel={
+                  user
+                    ? list.ownerUserId === user.id
+                      ? dict.members.owner
+                      : (list.members.find((member) => member.userId === user.id)?.role === "EDITOR" ? dict.members.editor : dict.members.viewer)
+                    : undefined
+                }
+                copy={{
+                  shared: dict.lists.shared,
+                  private: dict.lists.private,
+                  noDescription: dict.lists.noDescription,
+                  placesCount: dict.lists.placesCount,
+                  visitedCount: dict.lists.visitedCount,
+                  rolePrefix: dict.lists.rolePrefix
+                }}
+              />
+              {user && list.ownerUserId === user.id ? (
+                <div className="flex justify-end pr-1">
+                  <form action={deleteArchivedListAction}>
+                    <input type="hidden" name="listId" value={list.id} />
+                    <FormSubmitButton type="submit" variant="danger" size="sm" pendingLabel="Bezig...">
+                      {dict.lists.deleteArchivedButton}
+                    </FormSubmitButton>
+                  </form>
+                </div>
+              ) : null}
+            </div>
           ))}
         </section>
       ) : null}
-      <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
-        <summary className="cursor-pointer list-none text-[15px] font-semibold">Handmatig lijst maken</summary>
-        <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-          Liever zonder CSV beginnen? Maak hier een lege lijst aan en voeg later handmatig adressen of plekken toe.
-        </p>
-        <form action={createListAction} className="mt-4 space-y-3">
-          <Input name="name" placeholder={dict.lists.namePlaceholder} aria-label={dict.lists.nameLabel} required />
-          <Textarea name="description" placeholder={dict.lists.descriptionPlaceholder} aria-label={dict.lists.descriptionLabel} />
-          <Input name="coverColor" placeholder={dict.lists.colorPlaceholder} aria-label={dict.lists.colorLabel} />
-          <StickyActionBar>
-            <FormSubmitButton fullWidth pendingLabel="Bezig...">
-              {dict.lists.createButton}
-            </FormSubmitButton>
-          </StickyActionBar>
-        </form>
-      </details>
+      {audience === "business" ? (
+        <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+          <summary className="cursor-pointer list-none text-[15px] font-semibold">Toch liever handmatig beginnen?</summary>
+          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+            Gebruik dit alleen voor losse adressen of uitzonderingen. Voor de meeste zakelijke dagen blijft CSV-import de snelste start.
+          </p>
+          <form action={createListAction} className="mt-4 space-y-3">
+            <Input name="name" placeholder={dict.lists.namePlaceholder} aria-label={dict.lists.nameLabel} required />
+            <Textarea name="description" placeholder={dict.lists.descriptionPlaceholder} aria-label={dict.lists.descriptionLabel} />
+            <Input name="coverColor" placeholder={dict.lists.colorPlaceholder} aria-label={dict.lists.colorLabel} />
+            <StickyActionBar>
+              <FormSubmitButton fullWidth pendingLabel="Bezig...">
+                {dict.lists.createButton}
+              </FormSubmitButton>
+            </StickyActionBar>
+          </form>
+        </details>
+      ) : null}
     </PageContainer>
   );
 }

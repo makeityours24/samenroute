@@ -4,10 +4,13 @@ import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ActiveListCard } from "@/components/home/active-list-card";
 import { ActiveDayStatusCard } from "@/components/home/active-day-status-card";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
+import { GroupSignalsCard } from "@/components/home/group-signals-card";
+import { NextBestStepCard } from "@/components/home/next-best-step-card";
 import { ProactivePlanningCard } from "@/components/home/proactive-planning-card";
 import { ProgressSummaryCard } from "@/components/home/progress-summary-card";
 import { QuickActions } from "@/components/home/quick-actions";
 import { RecentVisitedList } from "@/components/home/recent-visited-list";
+import { ReplanSupportCard } from "@/components/home/replan-support-card";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
@@ -64,6 +67,123 @@ export default async function HomePage() {
         .replace("{count}", String(selectedConfirmedPlan.stopIds.length))
     : "";
   const isSharedList = (activeListDetail?.members.length ?? 0) > 1;
+  const activeListId = summary?.id ?? "";
+  const activeRoute = summary?.routePlans[0];
+  const currentRouteStop = activeRoute?.stops.find((stop) => !stop.isCompleted);
+  const nextRouteStop = activeRoute?.stops.find((stop) => stop.stopOrder === (currentRouteStop?.stopOrder ?? 0) + 1);
+  const memberInsights = activeListDetail
+    ? activeListDetail.members.map((member) => {
+        const addedCount = activeListDetail.listPlaces.filter((item) => item.place.createdByUser?.id === member.userId).length;
+        const visitedCount = activeListDetail.listPlaces.filter((item) => item.visitedByUser?.id === member.userId).length;
+
+        return {
+          email: member.user.email,
+          addedCount,
+          visitedCount
+        };
+      })
+    : [];
+  const topAdder = [...memberInsights].sort((left, right) => right.addedCount - left.addedCount)[0];
+  const topVisitor = [...memberInsights].sort((left, right) => right.visitedCount - left.visitedCount)[0];
+  const preferredCategory = behavior?.topCategories[0] ?? dict.home.learningFallbackCategory;
+  const preferredModeLabel =
+    behavior?.recommendedTransportMode === "BICYCLING"
+      ? dict.today.bicycling
+      : behavior?.recommendedTransportMode === "DRIVING"
+        ? dict.today.driving
+        : behavior?.recommendedTransportMode === "TRANSIT"
+          ? dict.today.transit
+          : dict.today.walking;
+  const nextBestStep = activeRoute
+    ? {
+        eyebrow: dict.home.nextStepRouteEyebrow,
+        title: dict.home.nextStepRouteTitle,
+        body: dict.home.nextStepRouteBody
+          .replace("{current}", currentRouteStop?.listPlace.place.name ?? dict.home.activeDayDone)
+          .replace("{next}", nextRouteStop?.listPlace.place.name ?? dict.home.activeDayDone),
+        bullets: [
+          dict.home.nextStepRouteBulletProgress
+            .replace("{done}", String(activeRoute.stops.filter((stop) => stop.isCompleted).length))
+            .replace("{total}", String(activeRoute.stops.length)),
+          dict.home.nextStepRouteBulletCurrent.replace("{place}", currentRouteStop?.listPlace.place.name ?? dict.home.activeDayDone),
+          dict.home.nextStepRouteBulletAdjust
+        ],
+        primaryLabel: dict.home.resumeRoute,
+        primaryHref: `/route/${activeRoute.id}`,
+        secondaryLabel: dict.home.nextStepAdjustDay,
+        secondaryHref: `/today?listId=${activeListId}`
+      }
+    : selectedConfirmedPlan
+      ? {
+          eyebrow: dict.home.nextStepConfirmedEyebrow,
+          title: dict.home.nextStepConfirmedTitle.replace("{day}", selectedConfirmedPlan.title),
+          body: dict.home.nextStepConfirmedBody
+            .replace("{count}", String(selectedConfirmedPlan.stopIds.length))
+            .replace("{day}", selectedConfirmedPlan.title),
+          bullets: [
+            dict.home.nextStepConfirmedBulletOne,
+            dict.home.nextStepConfirmedBulletTwo.replace("{count}", String(selectedConfirmedPlan.mustSeeVotes)),
+            dict.home.nextStepConfirmedBulletThree.replace("{count}", String(selectedConfirmedPlan.todayVotes))
+          ],
+          primaryLabel: dict.home.confirmedDayCta,
+          primaryHref: `/today?listId=${activeListId}&day=${selectedConfirmedPlan.dayNumber}`,
+          secondaryLabel: isSharedList ? dict.home.proactiveShareCta : dict.home.openActiveList,
+          secondaryHref: isSharedList ? `/today?listId=${activeListId}&day=${selectedConfirmedPlan.dayNumber}` : `/lists/${activeListId}`
+        }
+      : proactiveDayPlan
+        ? {
+            eyebrow: dict.home.nextStepPlanEyebrow,
+            title: dict.home.nextStepPlanTitle.replace("{day}", proactiveDayPlan.title),
+            body: dict.home.nextStepPlanBody
+              .replace("{day}", proactiveDayPlan.title)
+              .replace("{count}", String(proactiveDayPlan.stopIds.length)),
+            bullets: [
+              dict.home.nextStepPlanBulletOne.replace("{count}", String(dayPlans.length)),
+              dict.home.nextStepPlanBulletTwo.replace("{pace}", String(behavior?.recommendedDayStopCount ?? proactiveDayPlan.stopIds.length)),
+              dict.home.nextStepPlanBulletThree
+            ],
+            primaryLabel: dict.home.proactiveMultiDayCta,
+            primaryHref: `/today?listId=${activeListId}&day=${proactiveDayPlan.dayNumber}`,
+            secondaryLabel: dict.home.openActiveList,
+            secondaryHref: `/lists/${activeListId}`
+          }
+        : {
+            eyebrow: dict.home.nextStepDefaultEyebrow,
+            title: dict.home.nextStepDefaultTitle,
+            body: dict.home.nextStepDefaultBody,
+            bullets: [
+              dict.home.nextStepDefaultBulletOne,
+              dict.home.nextStepDefaultBulletTwo,
+              dict.home.nextStepDefaultBulletThree
+            ],
+            primaryLabel: dict.home.planToday,
+            primaryHref: `/today?listId=${activeListId}`,
+            secondaryLabel: dict.home.openActiveList,
+            secondaryHref: `/lists/${activeListId}`
+          };
+  const learningSignals = [
+    dict.home.learningSignalCategory.replace("{category}", preferredCategory),
+    dict.home.learningSignalPace.replace(
+      "{count}",
+      String(behavior?.recommendedDayStopCount ?? Math.max(2, Math.min(pendingCount, 4)))
+    ),
+    dict.home.learningSignalTransport.replace("{mode}", preferredModeLabel)
+  ];
+  const groupSignals = isSharedList
+    ? [
+        topAdder?.addedCount
+          ? dict.home.groupAddsSignal.replace("{email}", topAdder.email).replace("{count}", String(topAdder.addedCount))
+          : null,
+        topVisitor?.visitedCount
+          ? dict.home.groupVisitsSignal.replace("{email}", topVisitor.email).replace("{count}", String(topVisitor.visitedCount))
+          : null,
+        selectedConfirmedPlan
+          ? dict.home.groupConfirmedSignal.replace("{day}", selectedConfirmedPlan.title)
+          : proactiveDayPlan
+            ? dict.home.groupSuggestedSignal.replace("{day}", proactiveDayPlan.title)
+            : dict.home.groupNeedsChoiceSignal
+      ].filter((signal): signal is string => Boolean(signal))
+    : [];
 
   return (
     <PageContainer className="gap-4">
@@ -145,6 +265,16 @@ export default async function HomePage() {
               </Link>
             </div>
           </Card>
+          <NextBestStepCard
+            eyebrow={nextBestStep.eyebrow}
+            title={nextBestStep.title}
+            body={nextBestStep.body}
+            bullets={nextBestStep.bullets}
+            primaryLabel={nextBestStep.primaryLabel}
+            primaryHref={nextBestStep.primaryHref}
+            secondaryLabel={nextBestStep.secondaryLabel}
+            secondaryHref={nextBestStep.secondaryHref}
+          />
           <ActiveListCard
             listName={summary.name}
             pendingCount={pendingCount}
@@ -222,6 +352,38 @@ export default async function HomePage() {
             yesLabel={dict.home.yes}
             noLabel={dict.home.no}
           />
+          <BehaviorInsightsCard
+            title={dict.home.learningTitle}
+            subtitle={dict.home.learningSubtitle}
+            categories={learningSignals}
+            topCategoriesLabel={dict.home.learningSignalsLabel}
+            favoritesLabel={dict.home.behaviorFavorites}
+            favoritesCount={behavior?.favoriteCount ?? 0}
+            visitsLabel={dict.home.behaviorVisits}
+            visitsCount={behavior?.visitedCount ?? 0}
+          />
+          <GroupSignalsCard
+            badge={dict.home.groupBadge}
+            title={dict.home.groupTitle}
+            body={dict.home.groupBody}
+            signals={groupSignals}
+            ctaLabel={dict.home.groupCta}
+            ctaHref={`/lists/${activeListId}/members`}
+          />
+          <ReplanSupportCard
+            badge={dict.home.replanBadge}
+            title={dict.home.replanTitle}
+            body={activeRoute ? dict.home.replanBodyActive : dict.home.replanBodyIdle}
+            options={[
+              dict.home.replanOptionToday,
+              dict.home.replanOptionList,
+              activeRoute ? dict.home.replanOptionRoute : dict.home.replanOptionConfirm
+            ]}
+            primaryLabel={dict.home.replanPrimary}
+            primaryHref={`/today?listId=${activeListId}`}
+            secondaryLabel={dict.home.replanSecondary}
+            secondaryHref={`/lists/${activeListId}`}
+          />
           <section className="space-y-3 pt-1">
             <SectionHeader title={dict.home.recentVisited} subtitle={dict.home.recentVisitedSubtitle} />
             {visited.length > 0 ? (
@@ -237,18 +399,6 @@ export default async function HomePage() {
               <EmptyState title={dict.home.noVisits} description={dict.home.noVisitsBody} />
             )}
           </section>
-          {behavior ? (
-            <BehaviorInsightsCard
-              title="Werkpatroon uit eerdere dagen"
-              subtitle="Deze signalen helpen om toekomstige dagindelingen sneller te controleren."
-              categories={behavior.topCategories}
-              topCategoriesLabel={dict.home.behaviorTopCategories}
-              favoritesLabel={dict.home.behaviorFavorites}
-              favoritesCount={behavior.favoriteCount}
-              visitsLabel={dict.home.behaviorVisits}
-              visitsCount={behavior.visitedCount}
-            />
-          ) : null}
         </>
       ) : (
         <>

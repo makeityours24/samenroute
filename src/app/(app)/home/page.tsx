@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight, BriefcaseBusiness, FileSpreadsheet } from "lucide-react";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ActiveListCard } from "@/components/home/active-list-card";
 import { ActiveRouteBanner } from "@/components/home/active-route-banner";
@@ -139,6 +141,34 @@ export default async function HomePage() {
         </>
       ) : (
         <>
+          <section className="space-y-3 rounded-[var(--radius-xl)] border border-[var(--border)] bg-white p-5 shadow-[var(--shadow-card)]">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+              <BriefcaseBusiness className="h-3.5 w-3.5" />
+              Zakelijke start
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">Begin je dag met een adressenlijst, niet met losse notities.</h2>
+              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+                Voor makelaars en andere afspraakgedreven teams is dit de snelste route: maak eerst een lijst, open meteen de
+                CSV-import en laat SamenRoute daarna de slimste volgorde voorstellen.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/lists"
+                className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+              >
+                <span className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Start met CSV-import
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-4 text-sm leading-6 text-[var(--muted-foreground)]">
+                Eerst lijst maken, daarna importeren, daarna pas je dag plannen. Zo voelt de flow direct zakelijker en rustiger.
+              </div>
+            </div>
+          </section>
           <EmptyState title={dict.home.noActiveList} description={dict.home.noActiveListBody} />
           <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
             {dict.home.flowHint}

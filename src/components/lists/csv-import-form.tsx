@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { FileSpreadsheet, Inbox, TriangleAlert, Upload } from "lucide-react";
+import { Download, FileSpreadsheet, Inbox, TriangleAlert, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -90,13 +90,29 @@ export function CsvImportForm({
             </p>
           </div>
         </div>
-        <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted-foreground)]">
-          Heb je nog geen bestand klaarstaan?
-          {" "}
-          <a href="/examples/makelaars-import-voorbeeld.csv" className="font-semibold text-[var(--accent)] underline-offset-4 hover:underline">
-            Download hier eerst het voorbeeldbestand
+        <div className="grid gap-3 sm:grid-cols-2">
+          <a
+            href="/examples/makelaars-import-voorbeeld.csv"
+            download
+            className="rounded-2xl border border-[var(--border)] bg-white p-4 text-left transition hover:border-[var(--accent)] hover:shadow-[var(--shadow-soft)]"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+              <Download className="h-4 w-4 text-[var(--accent)]" />
+              Download voorbeeld-CSV
+            </div>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+              Gebruik eerst dit bestand als kapstok voor kolommen zoals naam, adres, postcode, stad en notitie.
+            </p>
           </a>
-          .
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+              <Upload className="h-4 w-4 text-[var(--accent)]" />
+              Upload daarna je eigen lijst
+            </div>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+              SamenRoute laat direct zien welke regels bruikbaar zijn, zodat je niet blind importeert.
+            </p>
+          </div>
         </div>
         <Input
           type="file"

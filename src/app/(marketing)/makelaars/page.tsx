@@ -77,9 +77,9 @@ export default async function MakelaarsPage() {
   const { locale, dict } = await getDictionary();
 
   return (
-    <PageContainer className="max-w-5xl gap-6 px-5 py-8">
+    <PageContainer className="max-w-5xl gap-5 px-4 py-6 sm:gap-6 sm:px-5 sm:py-8">
       <section className="space-y-5">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/"
             className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-[var(--accent)] shadow-[var(--shadow)]"
@@ -99,14 +99,14 @@ export default async function MakelaarsPage() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
-          <Card className="space-y-5 bg-white/92 p-6">
+          <Card className="space-y-5 bg-white/92 p-5 sm:p-6">
             <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold text-[var(--accent)]">
               <BriefcaseBusiness className="h-4 w-4" />
               Concept voor makelaars
             </div>
 
             <div className="space-y-3">
-              <h1 className="max-w-xl text-4xl font-semibold leading-tight text-[var(--foreground)]">
+              <h1 className="max-w-xl text-3xl font-semibold leading-tight text-[var(--foreground)] sm:text-4xl">
                 Plan bezichtigingsdagen zonder zigzag.
               </h1>
               <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
@@ -154,17 +154,17 @@ export default async function MakelaarsPage() {
           </Card>
 
           <Card className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(37,107,86,0.10),rgba(255,255,255,0.92))] p-5">
-            <div className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-2 text-xs font-semibold text-[var(--accent)] shadow-[var(--shadow-soft)]">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-2 text-xs font-semibold text-[var(--accent)] shadow-[var(--shadow-soft)] sm:absolute sm:right-4 sm:top-4 sm:mb-0">
               <Sparkles className="h-4 w-4" />
               Vandaag logisch geordend
             </div>
 
-            <div className="space-y-4 pt-12">
+            <div className="space-y-4 sm:pt-12">
               <div className="rounded-[28px] bg-white p-4 shadow-[var(--shadow)]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Dagindeling</p>
-                    <h2 className="mt-2 text-2xl font-semibold">Arnhem bezichtigingsdag</h2>
+                    <h2 className="mt-2 text-xl font-semibold sm:text-2xl">Arnhem bezichtigingsdag</h2>
                   </div>
                   <div className="rounded-full bg-[var(--surface-muted)] px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)]">
                     4 stops
@@ -178,7 +178,7 @@ export default async function MakelaarsPage() {
                         {index + 1}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                           <p className="truncate text-sm font-semibold text-[var(--foreground)]">{stop.title}</p>
                           <span className="text-xs font-semibold text-[var(--muted-foreground)]">{stop.time}</span>
                         </div>
@@ -188,7 +188,7 @@ export default async function MakelaarsPage() {
                   ))}
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[22px] bg-[var(--accent)] px-4 py-4 text-white shadow-[var(--shadow-soft)]">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/75">Bespaard</p>
                     <p className="mt-2 text-2xl font-semibold">35 min</p>
@@ -246,7 +246,7 @@ export default async function MakelaarsPage() {
       <section className="grid gap-4 lg:grid-cols-2">
         {photoCards.map((item) => (
           <Card key={item.title} className="overflow-hidden p-0">
-            <div className="relative h-64 w-full">
+            <div className="relative h-56 w-full sm:h-64">
               <Image src={item.image} alt={item.alt} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
               <div className="absolute inset-0 bg-gradient-to-t from-[rgba(23,22,18,0.68)] via-[rgba(23,22,18,0.08)] to-transparent" />
             </div>

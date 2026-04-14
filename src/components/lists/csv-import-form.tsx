@@ -14,10 +14,12 @@ type PreviewRow = CsvPlaceDraft & {
 
 export function CsvImportForm({
   action,
-  listId
+  listId,
+  businessMode = false
 }: {
   action: (formData: FormData) => Promise<void>;
   listId: string;
+  businessMode?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [file, setFile] = useState<File | null>(null);
@@ -91,19 +93,31 @@ export function CsvImportForm({
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <a
-            href="/examples/makelaars-import-voorbeeld.csv"
-            download
-            className="rounded-2xl border border-[var(--border)] bg-white p-4 text-left transition hover:border-[var(--accent)] hover:shadow-[var(--shadow-soft)]"
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-              <Download className="h-4 w-4 text-[var(--accent)]" />
-              Download voorbeeld-CSV
+          {businessMode ? (
+            <a
+              href="/examples/makelaars-import-voorbeeld.csv"
+              download
+              className="rounded-2xl border border-[var(--border)] bg-white p-4 text-left transition hover:border-[var(--accent)] hover:shadow-[var(--shadow-soft)]"
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                <Download className="h-4 w-4 text-[var(--accent)]" />
+                Download voorbeeld-CSV
+              </div>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+                Gebruik eerst dit bestand als kapstok voor kolommen zoals naam, adres, postcode, stad en notitie.
+              </p>
+            </a>
+          ) : (
+            <div className="rounded-2xl border border-[var(--border)] bg-white p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
+                CSV is optioneel
+              </div>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+                Handig als je al een lijstje in een spreadsheet hebt staan. Anders kun je deze lijst ook gewoon handmatig blijven vullen.
+              </p>
             </div>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-              Gebruik eerst dit bestand als kapstok voor kolommen zoals naam, adres, postcode, stad en notitie.
-            </p>
-          </a>
+          )}
           <div className="rounded-2xl border border-[var(--border)] bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
               <Upload className="h-4 w-4 text-[var(--accent)]" />

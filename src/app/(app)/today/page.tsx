@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route as AppRoute } from "next";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
 import { DayPlanSuggestionsCard } from "@/components/today/day-plan-suggestions-card";
@@ -13,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
 import { generateRouteAction } from "@/app/(app)/actions";
+import { getAppAudience } from "@/lib/audience/server";
 import { canMutateList } from "@/server/domain/policies/list-policy";
 import { ListMemberRole } from "@/server/domain/enums";
 import { getDictionary } from "@/lib/i18n/server";
@@ -30,7 +32,8 @@ export default async function TodayPage({
 }: {
   searchParams?: Promise<{ listId?: string; error?: string; day?: string }>;
 }) {
-  const { dict } = await getDictionary();
+  const { locale, dict } = await getDictionary();
+  const audience = await getAppAudience();
   const params = searchParams ? await searchParams : undefined;
   const user = await getCurrentUser();
   const lists = user ? await listRepository.findAccessibleByUser(user.id) : [];
@@ -160,7 +163,7 @@ export default async function TodayPage({
           id: item.id,
           name: item.place.name,
           detail: recommendedStopIds.has(item.id)
-            ? `${dict.today.recommendedStopLabel} • ${dict.listDetail.priorityLabel} ${item.priority}`
+            ? `${recommendedStopLabel} • ${dict.listDetail.priorityLabel} ${item.priority}`
             : `${dict.listDetail.priorityLabel} ${item.priority}`,
           defaultChecked: selectedDayPlan
             ? selectedDayStopIds.has(item.id)
@@ -171,6 +174,74 @@ export default async function TodayPage({
         }))
         .sort((left, right) => Number(right.recommended) - Number(left.recommended))
     : [];
+  const recommendedStopLabel =
+    audience === "business"
+      ? dict.today.recommendedStopLabel
+      : locale === "en"
+        ? "Fits your day"
+        : locale === "tr"
+          ? "Gününe uyuyor"
+          : "Past bij jouw dag";
+  const todayIntroCopy =
+    audience === "business"
+      ? {
+          title: dict.today.workflowTitle,
+          body: dict.today.workflowBody,
+          primary: dict.today.workflowImportCta,
+          secondary: dict.today.workflowListCta,
+          primaryHref: `/lists/${detail?.id ?? ""}?focus=csv-import#csv-import`,
+          badgeBusiness: true
+        }
+      : locale === "en"
+        ? {
+            title: "Plan calmly before you navigate",
+            body: "Choose what fits today first, check the order, and only then continue in Google Maps.",
+            primary: "Open active list",
+            secondary: "Review places",
+            primaryHref: `/lists/${detail?.id ?? ""}`,
+            badgeBusiness: false
+          }
+        : locale === "tr"
+          ? {
+              title: "Navigasyondan önce planını sakin kur",
+              body: "Önce bugüne uyan yerleri seç, sırayı kontrol et ve ancak ondan sonra Google Maps'e geç.",
+              primary: "Aktif listeyi aç",
+              secondary: "Yerleri gözden geçir",
+              primaryHref: `/lists/${detail?.id ?? ""}`,
+              badgeBusiness: false
+            }
+          : {
+              title: "Plan eerst rustig voordat je gaat navigeren",
+              body: "Kies eerst wat vandaag past, controleer de volgorde en ga pas daarna verder in Google Maps.",
+              primary: "Open actieve lijst",
+              secondary: "Bekijk je plekken",
+              primaryHref: `/lists/${detail?.id ?? ""}`,
+              badgeBusiness: false
+            };
+  const dayPlanHeader =
+    audience === "business"
+      ? {
+          badge: dict.today.dayPlansBadge,
+          title: dict.today.dayPlansTitle,
+          subtitle: dict.today.dayPlansSubtitle.replace("{count}", String(dayPlans.length))
+        }
+      : locale === "en"
+        ? {
+            badge: "Multiple day suggestions",
+            title: "SamenRoute can split this into calmer days",
+            subtitle: `This list seems to fit better across ${dayPlans.length} separate day suggestions.`
+          }
+        : locale === "tr"
+          ? {
+              badge: "Birden fazla gün önerisi",
+              title: "SamenRoute bunu daha sakin günlere bölebilir",
+              subtitle: `Bu liste ${dayPlans.length} ayrı gün önerisine daha uygun görünüyor.`
+            }
+          : {
+              badge: "Meerdere dagvoorstellen",
+              title: "SamenRoute kan dit verdelen over rustigere dagen",
+              subtitle: `Deze lijst lijkt beter te passen in ${dayPlans.length} losse dagvoorstellen.`
+            };
 
   return (
     <PageContainer className="gap-4">
@@ -179,18 +250,22 @@ export default async function TodayPage({
         <>
           <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
             <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-              <BriefcaseBusiness className="h-4 w-4 text-[var(--accent)]" />
-              {dict.today.workflowTitle}
+              {todayIntroCopy.badgeBusiness ? (
+                <BriefcaseBusiness className="h-4 w-4 text-[var(--accent)]" />
+              ) : (
+                <ArrowRight className="h-4 w-4 text-[var(--accent)]" />
+              )}
+              {todayIntroCopy.title}
             </div>
-            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.today.workflowBody}</p>
+            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{todayIntroCopy.body}</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <Link
-                href={`/lists/${detail.id}?focus=csv-import#csv-import`}
+                href={todayIntroCopy.primaryHref as AppRoute}
                 className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
               >
                 <span className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  {dict.today.workflowImportCta}
+                  {todayIntroCopy.badgeBusiness ? <FileSpreadsheet className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+                  {todayIntroCopy.primary}
                 </span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -198,7 +273,7 @@ export default async function TodayPage({
                 href={`/lists/${detail.id}`}
                 className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
               >
-                <span>{dict.today.workflowListCta}</span>
+                <span>{todayIntroCopy.secondary}</span>
                 <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
               </Link>
             </div>
@@ -219,9 +294,9 @@ export default async function TodayPage({
               selectedDay={selectedDayPlan?.dayNumber}
               confirmedDay={confirmedDayPlan?.dayNumber ?? undefined}
               copy={{
-                badge: dict.today.dayPlansBadge,
-                title: dict.today.dayPlansTitle,
-                subtitle: dict.today.dayPlansSubtitle.replace("{count}", String(dayPlans.length)),
+                badge: dayPlanHeader.badge,
+                title: dayPlanHeader.title,
+                subtitle: dayPlanHeader.subtitle,
                 stops: dict.today.stops,
                 chooseDay: dict.today.dayPlansChooseDay,
                 selected: dict.today.dayPlansSelected,

@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
+import { getAppAudience } from "@/lib/audience/server";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { getDictionary } from "@/lib/i18n/server";
@@ -27,7 +28,8 @@ const listDayPlanSelectionRepository = new ListDayPlanSelectionRepository();
 
 export default async function HomePage() {
   const user = await getCurrentUser();
-  const { dict } = await getDictionary();
+  const { locale, dict } = await getDictionary();
+  const audience = await getAppAudience();
   const summary = user ? await listRepository.getHomeSummary(user.id) : null;
   const behavior = user ? await getUserBehaviorInsightsService(user.id) : null;
   const activeListDetail = user && summary ? await listRepository.findDetail(summary.id, user.id) : null;
@@ -184,87 +186,250 @@ export default async function HomePage() {
             : dict.home.groupNeedsChoiceSignal
       ].filter((signal): signal is string => Boolean(signal))
     : [];
+  const homeCopy =
+    audience === "business"
+      ? {
+          topTitle: dict.home.topTitle,
+          topSubtitle: dict.home.topSubtitle,
+          flowHint: dict.home.flowHint
+        }
+      : locale === "en"
+        ? {
+            topTitle: "Your planning",
+            topSubtitle: "Save places, pick what fits today, and let SamenRoute sort it calmly.",
+            flowHint: "Open your list, choose what you want to do today, and only then confirm the route."
+          }
+        : locale === "tr"
+          ? {
+              topTitle: "Planın",
+              topSubtitle: "Yerleri kaydet, bugüne uygun olanları seç ve sıralamayı SamenRoute sakince kurusun.",
+              flowHint: "Önce listeyi aç, bugün için istediğin yerleri seç, sonra rotayı onayla."
+            }
+          : {
+              topTitle: "Jouw planning",
+              topSubtitle: "Bewaar plekken, kies wat vandaag past en laat SamenRoute het rustig ordenen.",
+              flowHint: "Open je lijst, kies wat je vandaag wilt doen en bevestig daarna pas je route."
+            };
+  const consumerHeroCopy =
+    locale === "en"
+      ? {
+          eyebrow: "Today",
+          title: "Choose what you want to do next",
+          body: "Your active list is your starting point. Open today’s plan, adjust the list, or continue your route if you already left.",
+          statOpen: "Open places",
+          statDone: "Visited",
+          statRoute: "Route active",
+          primary: "Plan today",
+          primaryHint: "Let SamenRoute suggest the best order",
+          secondary: "Open active list",
+          secondaryHint: "Review, edit, or add places",
+          tertiary: "Add a place",
+          tertiaryHint: "Save a new stop manually"
+        }
+      : locale === "tr"
+        ? {
+            eyebrow: "Bugün",
+            title: "Şimdi ne yapmak istediğini seç",
+            body: "Aktif listen başlangıç noktan. Bugünün planını aç, listeyi güncelle ya da yola çıktıysan rotana devam et.",
+            statOpen: "Açık yerler",
+            statDone: "Gidilen",
+            statRoute: "Aktif rota",
+            primary: "Bugünü planla",
+            primaryHint: "En iyi sırayı SamenRoute önersin",
+            secondary: "Aktif listeyi aç",
+            secondaryHint: "Gözden geçir, düzenle veya yer ekle",
+            tertiary: "Yer ekle",
+            tertiaryHint: "Elle yeni bir durak kaydet"
+          }
+        : {
+            eyebrow: "Vandaag",
+            title: "Kies wat je nu wilt doen",
+            body: "Je actieve lijst is je vertrekpunt. Open je plan voor vandaag, pas je lijst aan of ga verder met je route als je al onderweg bent.",
+            statOpen: "Open plekken",
+            statDone: "Bezocht",
+            statRoute: "Actieve route",
+            primary: "Plan vandaag",
+            primaryHint: "Laat SamenRoute de beste volgorde voorstellen",
+            secondary: "Open actieve lijst",
+            secondaryHint: "Bekijk, wijzig of voeg plekken toe",
+            tertiary: "Voeg plek toe",
+            tertiaryHint: "Sla handmatig een nieuwe stop op"
+          };
+  const consumerStartCopy =
+    locale === "en"
+      ? {
+          eyebrow: "Start",
+          title: "Start with a list you can build on together",
+          body: "Create a list first, save a few places, and then let SamenRoute help you decide what fits today best.",
+          cta: "Create or open lists",
+          helper: "First save places, then choose the best day plan, then move to navigation."
+        }
+      : locale === "tr"
+        ? {
+            eyebrow: "Başlangıç",
+            title: "Önce üzerine kurabileceğin bir liste oluştur",
+            body: "Önce bir liste oluştur, birkaç yer kaydet ve sonra bugüne en uygun akışı SamenRoute belirlesin.",
+            cta: "Listeleri aç veya oluştur",
+            helper: "Önce yerleri kaydet, sonra en uygun gün planını seç, en son navigasyona geç."
+          }
+        : {
+            eyebrow: "Start",
+            title: "Begin met een lijst waar je samen of alleen op kunt bouwen",
+            body: "Maak eerst een lijst, bewaar een paar plekken en laat SamenRoute daarna helpen bepalen wat vandaag het best past.",
+            cta: "Open of maak lijsten",
+            helper: "Sla eerst plekken op, kies daarna het beste dagplan en ga pas dan naar navigatie."
+          };
 
   return (
     <PageContainer className="gap-4">
-      <AppTopBar title={dict.home.topTitle} subtitle={dict.home.topSubtitle} />
+      <AppTopBar title={homeCopy.topTitle} subtitle={homeCopy.topSubtitle} />
       {summary ? (
         <>
           <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-            {dict.home.flowHint}
+            {homeCopy.flowHint}
           </div>
-          <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)] sm:p-5">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-              <BriefcaseBusiness className="h-3.5 w-3.5" />
-              Werkdag-dashboard
-            </div>
-            <div className="space-y-2">
-              <h2 className="max-w-2xl text-xl font-semibold leading-tight text-[var(--foreground)] sm:text-2xl">
-                Werk eerst je adressenlijst bij, bepaal daarna pas de dagvolgorde.
-              </h2>
-              <p className="max-w-3xl text-sm leading-6 text-[var(--muted-foreground)]">
-                Gebruik je actieve lijst als vaste basis. Vul nieuwe adressen aan via CSV of handmatig, controleer daarna de
-                volgorde voor vandaag en open pas dan navigatie.
-              </p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div className="rounded-2xl bg-white/85 p-3">
-                <p className="text-xs text-[var(--muted-foreground)]">Open adressen</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{pendingCount}</p>
+          {audience === "business" ? (
+            <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)] sm:p-5">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                <BriefcaseBusiness className="h-3.5 w-3.5" />
+                Werkdag-dashboard
               </div>
-              <div className="rounded-2xl bg-white/85 p-3">
-                <p className="text-xs text-[var(--muted-foreground)]">Afgerond</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{visited.length}</p>
-              </div>
-              <div className="rounded-2xl bg-white/85 p-3">
-                <p className="text-xs text-[var(--muted-foreground)]">Routesessie</p>
-                <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                  {summary.routePlans[0] ? dict.home.yes : dict.home.no}
+              <div className="space-y-2">
+                <h2 className="max-w-2xl text-xl font-semibold leading-tight text-[var(--foreground)] sm:text-2xl">
+                  Werk eerst je adressenlijst bij, bepaal daarna pas de dagvolgorde.
+                </h2>
+                <p className="max-w-3xl text-sm leading-6 text-[var(--muted-foreground)]">
+                  Gebruik je actieve lijst als vaste basis. Vul nieuwe adressen aan via CSV of handmatig, controleer daarna de
+                  volgorde voor vandaag en open pas dan navigatie.
                 </p>
               </div>
-            </div>
-            <div className="grid gap-3 lg:grid-cols-3">
-              <Link
-                href={`/lists/${summary.id}?focus=csv-import#csv-import`}
-                className="flex min-h-24 items-start justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
-              >
-                <div className="space-y-2">
-                  <span className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4" />
-                    Open CSV-import
-                  </span>
-                  <p className="text-left text-xs font-medium leading-5 text-white/80">Voeg extra adressen toe uit een bestand</p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-2xl bg-white/85 p-3">
+                  <p className="text-xs text-[var(--muted-foreground)]">Open adressen</p>
+                  <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{pendingCount}</p>
                 </div>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href={`/today?listId=${summary.id}`}
-                className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
-              >
-                <div className="space-y-2">
-                  <span className="flex items-center gap-2">
-                    <Route className="h-4 w-4 text-[var(--accent)]" />
-                    Werk dagvolgorde uit
-                  </span>
-                  <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">Laat SamenRoute de dag rustig ordenen</p>
+                <div className="rounded-2xl bg-white/85 p-3">
+                  <p className="text-xs text-[var(--muted-foreground)]">Afgerond</p>
+                  <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{visited.length}</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
-              </Link>
-              <Link
-                href={`/lists/${summary.id}`}
-                className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
-              >
-                <div className="space-y-2">
-                  <span className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4 text-[var(--accent)]" />
-                    Open actieve lijst
-                  </span>
-                  <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">Bekijk, corrigeer of vul handmatig aan</p>
+                <div className="rounded-2xl bg-white/85 p-3">
+                  <p className="text-xs text-[var(--muted-foreground)]">Routesessie</p>
+                  <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+                    {summary.routePlans[0] ? dict.home.yes : dict.home.no}
+                  </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
-              </Link>
-            </div>
-          </Card>
+              </div>
+              <div className="grid gap-3 lg:grid-cols-3">
+                <Link
+                  href={`/lists/${summary.id}?focus=csv-import#csv-import`}
+                  className="flex min-h-24 items-start justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+                >
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-2">
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Open CSV-import
+                    </span>
+                    <p className="text-left text-xs font-medium leading-5 text-white/80">Voeg extra adressen toe uit een bestand</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href={`/today?listId=${summary.id}`}
+                  className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+                >
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-2">
+                      <Route className="h-4 w-4 text-[var(--accent)]" />
+                      Werk dagvolgorde uit
+                    </span>
+                    <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">Laat SamenRoute de dag rustig ordenen</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                </Link>
+                <Link
+                  href={`/lists/${summary.id}`}
+                  className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+                >
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-2">
+                      <FolderOpen className="h-4 w-4 text-[var(--accent)]" />
+                      Open actieve lijst
+                    </span>
+                    <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">Bekijk, corrigeer of vul handmatig aan</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                </Link>
+              </div>
+            </Card>
+          ) : (
+            <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)] sm:p-5">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                <Route className="h-3.5 w-3.5" />
+                {consumerHeroCopy.eyebrow}
+              </div>
+              <div className="space-y-2">
+                <h2 className="max-w-2xl text-xl font-semibold leading-tight text-[var(--foreground)] sm:text-2xl">
+                  {consumerHeroCopy.title}
+                </h2>
+                <p className="max-w-3xl text-sm leading-6 text-[var(--muted-foreground)]">{consumerHeroCopy.body}</p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-2xl bg-white/85 p-3">
+                  <p className="text-xs text-[var(--muted-foreground)]">{consumerHeroCopy.statOpen}</p>
+                  <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{pendingCount}</p>
+                </div>
+                <div className="rounded-2xl bg-white/85 p-3">
+                  <p className="text-xs text-[var(--muted-foreground)]">{consumerHeroCopy.statDone}</p>
+                  <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{visited.length}</p>
+                </div>
+                <div className="rounded-2xl bg-white/85 p-3">
+                  <p className="text-xs text-[var(--muted-foreground)]">{consumerHeroCopy.statRoute}</p>
+                  <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">{summary.routePlans[0] ? dict.home.yes : dict.home.no}</p>
+                </div>
+              </div>
+              <div className="grid gap-3 lg:grid-cols-3">
+                <Link
+                  href={`/today?listId=${summary.id}`}
+                  className="flex min-h-24 items-start justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+                >
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-2">
+                      <Route className="h-4 w-4" />
+                      {consumerHeroCopy.primary}
+                    </span>
+                    <p className="text-left text-xs font-medium leading-5 text-white/80">{consumerHeroCopy.primaryHint}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href={`/lists/${summary.id}`}
+                  className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+                >
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-2">
+                      <FolderOpen className="h-4 w-4 text-[var(--accent)]" />
+                      {consumerHeroCopy.secondary}
+                    </span>
+                    <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">{consumerHeroCopy.secondaryHint}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                </Link>
+                <Link
+                  href={`/lists/${summary.id}?focus=add-place#add-place`}
+                  className="flex min-h-24 items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+                >
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-2">
+                      <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
+                      {consumerHeroCopy.tertiary}
+                    </span>
+                    <p className="text-left text-xs font-medium leading-5 text-[var(--muted-foreground)]">{consumerHeroCopy.tertiaryHint}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                </Link>
+              </div>
+            </Card>
+          )}
           <NextBestStepCard
             eyebrow={nextBestStep.eyebrow}
             title={nextBestStep.title}
@@ -403,36 +568,74 @@ export default async function HomePage() {
       ) : (
         <>
           <section className="space-y-3 rounded-[var(--radius-xl)] border border-[var(--border)] bg-white p-5 shadow-[var(--shadow-card)]">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
-              <BriefcaseBusiness className="h-3.5 w-3.5" />
-              Zakelijke start
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">Begin je dag met een adressenlijst, niet met losse notities.</h2>
-              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
-                Voor makelaars en andere afspraakgedreven teams is dit de snelste route: maak eerst een lijst, open meteen de
-                CSV-import en werk daarna de dagvolgorde uit.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link
-                href="/lists"
-                className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
-              >
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Start met CSV-import
-                </span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-4 text-sm leading-6 text-[var(--muted-foreground)]">
-                Eerst lijst maken, daarna importeren, daarna pas je dag plannen. Zo voelt de flow direct zakelijker en rustiger.
-              </div>
-            </div>
+            {audience === "business" ? (
+              <>
+                <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                  <BriefcaseBusiness className="h-3.5 w-3.5" />
+                  Zakelijke start
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-semibold text-[var(--foreground)]">Begin je dag met een adressenlijst, niet met losse notities.</h2>
+                  <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+                    Voor makelaars en andere afspraakgedreven teams is dit de snelste route: maak eerst een lijst, open meteen de
+                    CSV-import en werk daarna de dagvolgorde uit.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Link
+                    href="/lists"
+                    className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+                  >
+                    <span className="flex items-center gap-2">
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Start met CSV-import
+                    </span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-4 text-sm leading-6 text-[var(--muted-foreground)]">
+                    Eerst lijst maken, daarna importeren, daarna pas je dag plannen. Zo voelt de flow direct zakelijker en rustiger.
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                  <Route className="h-3.5 w-3.5" />
+                  {consumerStartCopy.eyebrow}
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-semibold text-[var(--foreground)]">{consumerStartCopy.title}</h2>
+                  <p className="text-sm leading-6 text-[var(--muted-foreground)]">{consumerStartCopy.body}</p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Link
+                    href="/lists"
+                    className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+                  >
+                    <span>{consumerStartCopy.cta}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-4 text-sm leading-6 text-[var(--muted-foreground)]">
+                    {consumerStartCopy.helper}
+                  </div>
+                </div>
+              </>
+            )}
           </section>
-          <EmptyState title={dict.home.noActiveList} description={dict.home.noActiveListBody} />
+          <EmptyState
+            title={audience === "business" ? dict.home.noActiveList : (locale === "en" ? "No list yet" : locale === "tr" ? "Henüz liste yok" : "Nog geen lijst")}
+            description={
+              audience === "business"
+                ? dict.home.noActiveListBody
+                : locale === "en"
+                  ? "Create a list first so you can save places and let SamenRoute build a calm plan for today."
+                  : locale === "tr"
+                    ? "Önce bir liste oluştur; sonra yerleri kaydedip SamenRoute'un bugüne uygun sakin bir plan yapmasına izin ver."
+                    : "Maak eerst een lijst, dan kun je plekken bewaren en SamenRoute een rustig plan voor vandaag laten maken."
+            }
+          />
           <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-            {dict.home.flowHint}
+            {homeCopy.flowHint}
           </div>
           <QuickActions
             addPlaceLabel={dict.home.addPlace}

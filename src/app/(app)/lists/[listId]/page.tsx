@@ -23,6 +23,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { addPlaceAction, importListPlacesAction, submitShareListAction, updateListAction, updateListPlaceAndPlaceAction } from "@/app/(app)/actions";
+import { getAppAudience } from "@/lib/audience/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { ListMemberRole } from "@/server/domain/enums";
 import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-user-behavior-insights.service";
@@ -42,7 +43,8 @@ export default async function ListDetailPage({
 }) {
   const { listId } = await params;
   const query = searchParams ? await searchParams : undefined;
-  const { dict } = await getDictionary();
+  const { locale, dict } = await getDictionary();
+  const audience = await getAppAudience();
   const user = await getCurrentUser();
   const list = user ? await listRepository.findDetail(listId, user.id) : null;
   const categories = await placeRepository.listCategories();
@@ -89,6 +91,30 @@ export default async function ListDetailPage({
           transportMode: behavior.recommendedTransportMode
         })
       : [];
+  const consumerListFlowCopy =
+    locale === "en"
+      ? {
+          importTitle: "Keep this list calm and usable",
+          importBody: "Add places in the way that suits you. CSV import is available, but regular editing and day planning stay the main experience.",
+          csvTitle: "CSV import",
+          csvSubtitle: "Optional. Handy if you already have places in a spreadsheet or export.",
+          addPlaceSummary: "Add a place manually"
+        }
+      : locale === "tr"
+        ? {
+            importTitle: "Bu listeyi sakin ve kullanışlı tut",
+            importBody: "Yerleri sana uyan şekilde ekle. CSV içe aktarma var, ama asıl deneyim normal düzenleme ve gün planlama olarak kalır.",
+            csvTitle: "CSV içe aktarma",
+            csvSubtitle: "İsteğe bağlı. Yerlerin zaten bir tabloda ya da dışa aktarımda varsa kullanışlıdır.",
+            addPlaceSummary: "Elle yer ekle"
+          }
+        : {
+            importTitle: "Houd deze lijst rustig en bruikbaar",
+            importBody: "Voeg plekken toe op de manier die bij je past. CSV-import kan, maar gewoon bewerken en je dag plannen blijft de hoofdflow.",
+            csvTitle: "CSV-import",
+            csvSubtitle: "Optioneel. Handig als je plekken al in een spreadsheet of export hebt staan.",
+            addPlaceSummary: "Handmatig plek toevoegen"
+          };
 
   return (
     <PageContainer className="gap-4">
@@ -122,7 +148,7 @@ export default async function ListDetailPage({
         }}
         planTodayHref={`/today?listId=${list.id}`}
       />
-      {canMutateList ? (
+      {canMutateList && audience === "business" ? (
         <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] shadow-[var(--shadow)]">
           <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
             <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -175,6 +201,13 @@ export default async function ListDetailPage({
             </div>
           </div>
         </Card>
+      ) : canMutateList ? (
+        <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] shadow-[var(--shadow-soft)]">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">{consumerListFlowCopy.importTitle}</h2>
+            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{consumerListFlowCopy.importBody}</p>
+          </div>
+        </Card>
       ) : null}
       {dayPlans.length > 1 ? (
         <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)]">
@@ -197,10 +230,14 @@ export default async function ListDetailPage({
           className="space-y-3 rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-4 shadow-[var(--shadow-soft)] sm:px-5"
         >
           <SectionHeader
-            title="CSV-import"
-            subtitle="Dit is het primaire startpunt voor zakelijke lijsten. Gebruik handmatige invoer alleen voor losse aanvullingen of uitzonderingen."
+            title={audience === "business" ? "CSV-import" : consumerListFlowCopy.csvTitle}
+            subtitle={
+              audience === "business"
+                ? "Dit is het primaire startpunt voor zakelijke lijsten. Gebruik handmatige invoer alleen voor losse aanvullingen of uitzonderingen."
+                : consumerListFlowCopy.csvSubtitle
+            }
           />
-          <CsvImportForm action={importListPlacesAction} listId={list.id} />
+          <CsvImportForm action={importListPlacesAction} listId={list.id} businessMode={audience === "business"} />
         </section>
       ) : null}
       <section className="space-y-3 pt-1">
@@ -314,7 +351,7 @@ export default async function ListDetailPage({
           open={Boolean(editingListPlace) || query?.focus === "add-place"}
         >
         <summary className="cursor-pointer list-none text-[15px] font-semibold">
-          {editingListPlace ? dict.listDetail.edit : "Handmatig plek toevoegen als uitzondering"}
+          {editingListPlace ? dict.listDetail.edit : audience === "business" ? "Handmatig plek toevoegen als uitzondering" : consumerListFlowCopy.addPlaceSummary}
         </summary>
         <div className="mt-4">
           <PlaceForm

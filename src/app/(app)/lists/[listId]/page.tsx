@@ -157,6 +157,23 @@ export default async function ListDetailPage({
               <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
             </a>
           </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <div className="rounded-2xl bg-white/85 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Stap 1</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Importeer adressen</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">Voeg eerst je bulkbestand toe uit Excel, CRM of planning.</p>
+            </div>
+            <div className="rounded-2xl bg-white/85 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Stap 2</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Controleer preview</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">Bekijk welke regels bruikbaar zijn en wat wordt overgeslagen.</p>
+            </div>
+            <div className="rounded-2xl bg-white/85 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Stap 3</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Werk daarna pas vandaag uit</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">Zodra de adressen staan, kun je de dagvolgorde rustig laten bepalen.</p>
+            </div>
+          </div>
         </Card>
       ) : null}
       {dayPlans.length > 1 ? (
@@ -175,20 +192,16 @@ export default async function ListDetailPage({
         </Card>
       ) : null}
       {canMutateList ? (
-        <details
+        <section
           id="csv-import"
-          open={query?.focus === "csv-import" || list.listPlaces.length === 0}
-          className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+          className="space-y-3 rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-4 shadow-[var(--shadow-soft)] sm:px-5"
         >
-          <summary className="cursor-pointer list-none text-[15px] font-semibold">CSV importeren</summary>
-          <div className="mt-4 space-y-4">
-            <SectionHeader
-              title="Plekken in bulk toevoegen"
-              subtitle="Handig als je al een adressenlijst uit Excel, CRM of planning hebt."
-            />
-            <CsvImportForm action={importListPlacesAction} listId={list.id} />
-          </div>
-        </details>
+          <SectionHeader
+            title="CSV-import"
+            subtitle="Dit is het primaire startpunt voor zakelijke lijsten. Gebruik handmatige invoer alleen voor losse aanvullingen of uitzonderingen."
+          />
+          <CsvImportForm action={importListPlacesAction} listId={list.id} />
+        </section>
       ) : null}
       <section className="space-y-3 pt-1">
         <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
@@ -295,9 +308,13 @@ export default async function ListDetailPage({
         </details>
       ) : null}
       {canMutateList ? (
-        <details id="add-place" className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]" open={Boolean(editingListPlace)}>
+        <details
+          id="add-place"
+          className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+          open={Boolean(editingListPlace) || query?.focus === "add-place"}
+        >
         <summary className="cursor-pointer list-none text-[15px] font-semibold">
-          {editingListPlace ? dict.listDetail.edit : "Handmatig plek toevoegen"}
+          {editingListPlace ? dict.listDetail.edit : "Handmatig plek toevoegen als uitzondering"}
         </summary>
         <div className="mt-4">
           <PlaceForm

@@ -11,9 +11,9 @@ export function middleware(request: NextRequest) {
   const hostname = getHostname(request);
   const { pathname } = request.nextUrl;
 
-  if (hostname === "makelaars.samenroute.nl" && pathname === "/") {
+  if (hostname === "makelaars.samenroute.nl" && (pathname === "/" || pathname.startsWith("/demo"))) {
     const url = request.nextUrl.clone();
-    url.pathname = "/makelaars";
+    url.pathname = pathname === "/" ? "/makelaars" : `/makelaars${pathname}`;
     return NextResponse.rewrite(url);
   }
 

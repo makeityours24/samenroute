@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Route as AppRoute } from "next";
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -11,7 +12,7 @@ import {
   Home,
   Inbox,
   MapPinned,
-  Route,
+  Route as RouteIcon,
   Sparkles
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -137,10 +138,10 @@ export default async function MakelaarsPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/signin"
+                href={"/makelaars/demo" as AppRoute}
                 className="flex min-h-14 items-center justify-center rounded-[24px] bg-[var(--accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow)]"
               >
-                Vraag een demo aan
+                Bekijk de demo-flow
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <a
@@ -228,7 +229,7 @@ export default async function MakelaarsPage() {
 
         <Card className="space-y-4 p-5">
           <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-            <Route className="h-4 w-4 text-[var(--accent)]" />
+            <RouteIcon className="h-4 w-4 text-[var(--accent)]" />
             Wat SamenRoute oplost
           </div>
           <div className="space-y-3">
@@ -359,10 +360,10 @@ export default async function MakelaarsPage() {
               Download voorbeeld-CSV
             </a>
             <Link
-              href="/signin"
+              href={"/makelaars/demo" as AppRoute}
               className="flex min-h-12 items-center justify-center rounded-[22px] bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-soft)]"
             >
-              Open demo-omgeving
+              Bekijk demo-flow
             </Link>
           </div>
         </Card>
@@ -426,10 +427,10 @@ export default async function MakelaarsPage() {
           </p>
           <div className="flex flex-col gap-3">
             <Link
-              href="/signin"
+              href={"/makelaars/demo" as AppRoute}
               className="flex min-h-14 items-center justify-center rounded-[24px] bg-[var(--accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow)]"
             >
-              Open demo-omgeving
+              Bekijk demo-flow
             </Link>
             <a
               href="mailto:info@miy24.nl?subject=SamenRoute%20makelaars%20demo"

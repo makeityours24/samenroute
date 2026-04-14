@@ -35,6 +35,36 @@ export default async function ProfilePage() {
             subtitle: dict.profile.mapsKeyBody
           },
           {
+            title: "Privacyverklaring",
+            subtitle: "Lees hoe SamenRoute met persoonsgegevens en appdata omgaat.",
+            trailing: (
+              <a href="/privacy" className="rounded-full bg-[var(--surface-muted)] px-3 py-2 text-xs font-semibold">
+                Open
+              </a>
+            )
+          },
+          {
+            title: "Gebruiksvoorwaarden",
+            subtitle: "Bekijk de basisafspraken voor het gebruik van SamenRoute.",
+            trailing: (
+              <a href="/voorwaarden" className="rounded-full bg-[var(--surface-muted)] px-3 py-2 text-xs font-semibold">
+                Open
+              </a>
+            )
+          },
+          {
+            title: "Demo-aanvragen",
+            subtitle: "Bekijk nieuwe aanvragen vanaf makelaars.samenroute.nl op een plek.",
+            trailing: (
+              <a
+                href="/profile/demo-aanvragen"
+                className="rounded-full bg-[var(--surface-muted)] px-3 py-2 text-xs font-semibold"
+              >
+                Open
+              </a>
+            )
+          },
+          {
             title: dict.profile.signOut,
             trailing: (
               <a

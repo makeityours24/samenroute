@@ -1,8 +1,9 @@
 import { env } from "@/lib/env/env";
-import { AppError } from "@/server/services/errors";
+import { DemoRequestRepository } from "@/server/repositories/demo-request.repository";
 import { z } from "zod";
 
 const recipientEmail = "info@samenroute.nl";
+const demoRequestRepository = new DemoRequestRepository();
 
 const submitMakelaarsDemoRequestSchema = z.object({
   name: z.string().trim().min(2, "Vul je naam in."),
@@ -32,8 +33,17 @@ export async function submitMakelaarsDemoRequestService(input: {
 }) {
   const data = submitMakelaarsDemoRequestSchema.parse(input);
 
+  await demoRequestRepository.create({
+    name: data.name,
+    officeName: data.officeName,
+    email: data.email,
+    city: data.city,
+    weeklyViewings: data.weeklyViewings,
+    notes: data.notes
+  });
+
   if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD) {
-    throw new AppError("E-mailverzending voor demo-aanvragen is nog niet ingesteld.");
+    return;
   }
 
   const transport = await import("nodemailer").then((module) =>
@@ -81,6 +91,5 @@ export async function submitMakelaarsDemoRequestService(input: {
     });
   } catch (error) {
     console.error("Failed to send makelaars demo request", error);
-    throw new AppError("De demo-aanvraag kon niet worden verstuurd.");
   }
 }

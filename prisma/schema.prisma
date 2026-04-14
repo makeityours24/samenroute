@@ -62,8 +62,27 @@ model User {
   routePlans     RoutePlan[]
   activityLogs   ActivityLog[] @relation("ActorLogs")
   sentListInvites ListInvite[] @relation("InvitedByUser")
+  demoRequests   DemoRequest[]
 
   @@map("users")
+}
+
+model DemoRequest {
+  id             String   @id @default(uuid())
+  name           String
+  officeName     String   @map("office_name")
+  email          String
+  city           String?
+  weeklyViewings String?  @map("weekly_viewings")
+  notes          String?
+  createdByUserId String? @map("created_by_user_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdByUser  User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("demo_requests")
 }
 
 model Account {

@@ -1,26 +1,39 @@
 import Link from "next/link";
-import { MapPinPlusInside, Route } from "lucide-react";
+import { FileSpreadsheet, MapPinPlusInside, Route } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 export function QuickActions({
   addPlaceLabel,
   addPlaceHint,
+  importCsvLabel,
+  importCsvHint,
   planTodayLabel,
   planTodayHint
 }: {
   addPlaceLabel: string;
   addPlaceHint: string;
+  importCsvLabel: string;
+  importCsvHint: string;
   planTodayLabel: string;
   planTodayHint: string;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid gap-3 sm:grid-cols-3">
       <Link href="/lists">
         <Card className="flex min-h-20 flex-col justify-between bg-white p-3 shadow-[var(--shadow-soft)]">
           <MapPinPlusInside className="h-5 w-5 text-[var(--accent)]" />
           <div>
             <p className="font-semibold">{addPlaceLabel}</p>
             <p className="text-xs text-[var(--muted-foreground)]">{addPlaceHint}</p>
+          </div>
+        </Card>
+      </Link>
+      <Link href="/lists">
+        <Card className="flex min-h-20 flex-col justify-between bg-white p-3 shadow-[var(--shadow-soft)]">
+          <FileSpreadsheet className="h-5 w-5 text-[var(--accent)]" />
+          <div>
+            <p className="font-semibold">{importCsvLabel}</p>
+            <p className="text-xs text-[var(--muted-foreground)]">{importCsvHint}</p>
           </div>
         </Card>
       </Link>

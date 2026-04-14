@@ -76,6 +76,8 @@ export default async function HomePage() {
           <QuickActions
             addPlaceLabel={dict.home.addPlace}
             addPlaceHint={dict.home.addPlaceHint}
+            importCsvLabel={dict.home.importCsv}
+            importCsvHint={dict.home.importCsvHint}
             planTodayLabel={dict.home.planToday}
             planTodayHint={dict.home.planTodayHint}
           />
@@ -176,6 +178,8 @@ export default async function HomePage() {
           <QuickActions
             addPlaceLabel={dict.home.addPlace}
             addPlaceHint={dict.home.addPlaceHint}
+            importCsvLabel={dict.home.importCsv}
+            importCsvHint={dict.home.importCsvHint}
             planTodayLabel={dict.home.planToday}
             planTodayHint={dict.home.planTodayHint}
           />

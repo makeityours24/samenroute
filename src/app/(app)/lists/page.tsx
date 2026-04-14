@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { createListAction, createListAndOpenImportAction, duplicateListAction } from "@/app/(app)/actions";
 import { AppTopBar } from "@/components/navigation/app-topbar";

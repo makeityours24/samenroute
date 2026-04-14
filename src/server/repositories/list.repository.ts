@@ -190,7 +190,21 @@ export class ListRepository {
         routePlans: {
           where: { status: "ACTIVE" },
           orderBy: { createdAt: "desc" },
-          take: 1
+          take: 1,
+          include: {
+            stops: {
+              include: {
+                listPlace: {
+                  include: {
+                    place: true
+                  }
+                }
+              },
+              orderBy: {
+                stopOrder: "asc"
+              }
+            }
+          }
         }
       },
       orderBy: {

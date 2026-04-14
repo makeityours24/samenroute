@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CurrentStopCard } from "@/components/route-session/current-stop-card";
+import { DayProgressCard } from "@/components/route-session/day-progress-card";
 import { NextStopCard } from "@/components/route-session/next-stop-card";
 import { RouteProgressBar } from "@/components/route-session/route-progress";
 import { RouteSessionActions } from "@/components/route-session/route-session-actions";
@@ -48,6 +49,7 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
   }
 
   const nextStop = routePlan.stops.find((stop) => stop.stopOrder === currentStop.stopOrder + 1);
+  const remainingCount = routePlan.stops.length - completedCount - 1;
   const explanationItems = [
     routePlan.startPlaceLabel
       ? dict.route.explanationStartPoint.replace("{startPoint}", routePlan.startPlaceLabel)
@@ -76,6 +78,18 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
           </ul>
         </Card>
         <RouteProgressBar current={completedCount + 1} total={routePlan.stops.length} label={dict.route.progress} />
+        <DayProgressCard
+          title={dict.route.dayStatusTitle}
+          progressLabel={dict.route.progress}
+          currentStopLabel={dict.route.currentStop}
+          nextStopLabel={dict.route.nextStop}
+          remainingLabel={dict.route.remainingStops}
+          completedCount={completedCount}
+          totalCount={routePlan.stops.length}
+          currentStop={currentStop.listPlace.place.name}
+          nextStop={nextStop?.listPlace.place.name ?? dict.route.lastStop}
+          remainingCount={Math.max(remainingCount, 0)}
+        />
         <CurrentStopCard
           name={currentStop.listPlace.place.name}
           location={[currentStop.listPlace.place.addressLine, currentStop.listPlace.place.city].filter(Boolean).join(", ") || dict.route.noAddress}

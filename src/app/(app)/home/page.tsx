@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BriefcaseBusiness, FileSpreadsheet } from "lucide-react";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ActiveListCard } from "@/components/home/active-list-card";
+import { ActiveDayStatusCard } from "@/components/home/active-day-status-card";
 import { ActiveRouteBanner } from "@/components/home/active-route-banner";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
 import { ProactivePlanningCard } from "@/components/home/proactive-planning-card";
@@ -176,11 +177,21 @@ export default async function HomePage() {
             />
           ) : null}
           {summary.routePlans[0] ? (
-            <ActiveRouteBanner
-              href={`/route/${summary.routePlans[0].id}`}
-              eyebrow={dict.home.currentRoute}
-              title={dict.home.continueRoute}
+            <ActiveDayStatusCard
+              title={dict.home.currentRoute}
+              body={dict.home.activeDayBody}
+              progressLabel={dict.home.activeDayProgress}
+              completedCount={summary.routePlans[0].stops.filter((stop) => stop.isCompleted).length}
+              totalCount={summary.routePlans[0].stops.length}
+              currentStopLabel={dict.home.activeDayCurrentStop}
+              currentStop={summary.routePlans[0].stops.find((stop) => !stop.isCompleted)?.listPlace.place.name ?? dict.home.activeDayDone}
+              nextStopLabel={dict.home.activeDayNextStop}
+              nextStop={
+                summary.routePlans[0].stops.find((stop) => stop.stopOrder === (summary.routePlans[0].stops.find((item) => !item.isCompleted)?.stopOrder ?? 0) + 1)?.listPlace.place.name ??
+                dict.home.activeDayDone
+              }
               buttonLabel={dict.home.resumeRoute}
+              href={`/route/${summary.routePlans[0].id}`}
             />
           ) : null}
           <section className="space-y-3 pt-1">

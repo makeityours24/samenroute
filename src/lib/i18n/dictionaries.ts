@@ -90,7 +90,12 @@ export const dictionaries = {
       behaviorSubtitle: "Deze voorkeuren ontstaan uit wat je bewaart, favoriet maakt en bezoekt.",
       behaviorTopCategories: "Vaak gekozen categorieen",
       behaviorFavorites: "Favorieten",
-      behaviorVisits: "Bezoeken"
+      behaviorVisits: "Bezoeken",
+      activeDayBody: "Je gekozen dagplan is bezig. SamenRoute laat hieronder zien waar je nu staat en wat hierna komt.",
+      activeDayProgress: "Voortgang",
+      activeDayCurrentStop: "Nu actief",
+      activeDayNextStop: "Hierna",
+      activeDayDone: "Afgerond"
     },
     lists: {
       topTitle: "Je lijsten",
@@ -343,6 +348,8 @@ export const dictionaries = {
       noAddress: "Geen adres",
       openGoogleMaps: "Open in Google Maps",
       returnHint: "Kom daarna terug in SamenRoute om je huidige stop af te vinken en direct door te gaan naar de volgende.",
+      dayStatusTitle: "Dagstatus",
+      remainingStops: "Nog over",
       stepTwoLabel: "Stap 2",
       actionsHint: "Meestal gebruik je eerst navigatie, daarna markeer je deze stop als bezocht.",
       secondaryActionsHint: "Alleen gebruiken als deze stop niet doorgaat of als je de route wilt stoppen.",
@@ -500,7 +507,12 @@ export const dictionaries = {
       behaviorSubtitle: "These preferences build up from what you save, favorite, and visit.",
       behaviorTopCategories: "Often chosen categories",
       behaviorFavorites: "Favorites",
-      behaviorVisits: "Visits"
+      behaviorVisits: "Visits",
+      activeDayBody: "Your chosen day plan is in progress. SamenRoute shows where you are now and what comes next.",
+      activeDayProgress: "Progress",
+      activeDayCurrentStop: "Current",
+      activeDayNextStop: "Next",
+      activeDayDone: "Done"
     },
     lists: {
       topTitle: "Your lists",
@@ -753,6 +765,8 @@ export const dictionaries = {
       noAddress: "No address",
       openGoogleMaps: "Open in Google Maps",
       returnHint: "Come back to SamenRoute afterwards so you can mark the current stop and move straight on to the next one.",
+      dayStatusTitle: "Day status",
+      remainingStops: "Remaining",
       stepTwoLabel: "Step 2",
       actionsHint: "Most of the time, use navigation first and then mark this stop as visited.",
       secondaryActionsHint: "Only use these if this stop is not happening or if you want to stop the route.",
@@ -910,7 +924,12 @@ export const dictionaries = {
       behaviorSubtitle: "Bu tercihler kaydettiklerin, favoriye aldıkların ve ziyaret ettiklerine göre oluşur.",
       behaviorTopCategories: "Sık seçilen kategoriler",
       behaviorFavorites: "Favoriler",
-      behaviorVisits: "Ziyaretler"
+      behaviorVisits: "Ziyaretler",
+      activeDayBody: "Seçilen gün planın şu anda devam ediyor. SamenRoute aşağıda şu an nerede olduğunu ve sırada ne olduğunu gösteriyor.",
+      activeDayProgress: "İlerleme",
+      activeDayCurrentStop: "Şu an",
+      activeDayNextStop: "Sıradaki",
+      activeDayDone: "Tamamlandı"
     },
     lists: {
       topTitle: "Listelerin",
@@ -1163,6 +1182,8 @@ export const dictionaries = {
       noAddress: "Adres yok",
       openGoogleMaps: "Google Maps'te aç",
       returnHint: "Sonra SamenRoute'a geri dön ki mevcut durağı tamamlayıp doğrudan sıradaki durağa geçebilesin.",
+      dayStatusTitle: "Gün durumu",
+      remainingStops: "Kalan",
       stepTwoLabel: "Adım 2",
       actionsHint: "Çoğu zaman önce navigasyonu kullanır, sonra bu durağı gidildi diye işaretlersin.",
       secondaryActionsHint: "Bunları sadece bu durağa gitmeyeceksen ya da rotayı bitirmek istiyorsan kullan.",

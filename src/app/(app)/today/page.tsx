@@ -5,6 +5,7 @@ import { DayPlanSuggestionsCard } from "@/components/today/day-plan-suggestions-
 import { PlanningFlowCard } from "@/components/today/planning-flow-card";
 import { PlannerForm } from "@/components/today/planner-form";
 import { RoutePreviewCard } from "@/components/today/route-preview-card";
+import { SmartDayExplanationCard } from "@/components/today/smart-day-explanation-card";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { ListRepository } from "@/server/repositories/list.repository";
@@ -102,6 +103,56 @@ export default async function TodayPage({
       : [];
   const selectedDayPlan = dayPlans.find((plan) => plan.dayNumber === selectedDay);
   const selectedDayStopIds = new Set(selectedDayPlan?.stopIds ?? []);
+  const selectedDayTypeLabel = selectedDayPlan
+    ? selectedDayPlan.dayType === "CALM"
+      ? dict.today.dayPlansCalmType
+      : selectedDayPlan.dayType === "HIGHLIGHTS"
+        ? dict.today.dayPlansHighlightsType
+        : dict.today.dayPlansBalancedType
+    : null;
+  const selectedDayThemeLabel = selectedDayPlan
+    ? selectedDayPlan.dayTheme === "CULTURE"
+      ? dict.today.dayPlansCultureTheme
+      : selectedDayPlan.dayTheme === "FOOD_WALK"
+        ? dict.today.dayPlansFoodWalkTheme
+        : selectedDayPlan.dayTheme === "OUTDOOR"
+          ? dict.today.dayPlansOutdoorTheme
+          : dict.today.dayPlansMixTheme
+    : null;
+  const selectedDayMomentLabel = selectedDayPlan
+    ? selectedDayPlan.dayMoment === "MORNING"
+      ? dict.today.dayPlansMorningMoment
+      : selectedDayPlan.dayMoment === "LUNCH"
+        ? dict.today.dayPlansLunchMoment
+        : selectedDayPlan.dayMoment === "EVENING"
+          ? dict.today.dayPlansEveningMoment
+          : dict.today.dayPlansAfternoonMoment
+    : null;
+  const smartReasonItems = selectedDayPlan
+    ? [
+        dict.today.smartReasonVotes
+          .replace("{mustSee}", String(selectedDayPlan.mustSeeVotes))
+          .replace("{todayVotes}", String(selectedDayPlan.todayVotes)),
+        dict.today.smartReasonTheme
+          .replace("{theme}", selectedDayThemeLabel ?? dict.today.dayPlansMixTheme)
+          .replace("{moment}", selectedDayMomentLabel ?? dict.today.dayPlansAfternoonMoment),
+        dict.today.smartReasonPace
+          .replace("{count}", String(selectedDayPlan.stopIds.length))
+          .replace("{pace}", String(behavior?.recommendedDayStopCount ?? selectedDayPlan.stopIds.length))
+          .replace("{type}", selectedDayTypeLabel ?? dict.today.dayPlansBalancedType)
+      ]
+    : hasSuggestedDayPlan
+      ? [
+          dict.today.smartReasonAutoSelected
+            .replace("{count}", String(recommendedStopIds.size))
+            .replace("{pace}", String(behavior?.recommendedDayStopCount ?? recommendedStopIds.size)),
+          dict.today.smartReasonBehavior.replace(
+            "{category}",
+            behavior?.topCategories[0] ?? dict.today.smartReasonFallbackCategory
+          ),
+          dict.today.smartReasonLearning
+        ]
+      : [];
   const plannerStops = detail
     ? detail.listPlaces
         .filter((item) => item.status === "PLANNED")
@@ -195,6 +246,24 @@ export default async function TodayPage({
                 confirmed: dict.today.dayPlansConfirmed,
                 confirmedByGroup: dict.today.dayPlansConfirmedByGroup
               }}
+            />
+          ) : null}
+          {selectedDayPlan || hasSuggestedDayPlan ? (
+            <SmartDayExplanationCard
+              badge={dict.today.smartExplanationBadge}
+              title={
+                selectedDayPlan
+                  ? dict.today.smartExplanationSelectedTitle.replace("{day}", selectedDayPlan.title)
+                  : dict.today.smartExplanationDefaultTitle
+              }
+              body={
+                selectedDayPlan
+                  ? dict.today.smartExplanationSelectedBody
+                  : dict.today.smartExplanationDefaultBody
+              }
+              reasons={smartReasonItems}
+              learningTitle={dict.today.learningTitle}
+              learningBody={dict.today.learningBody}
             />
           ) : null}
           {behavior ? (

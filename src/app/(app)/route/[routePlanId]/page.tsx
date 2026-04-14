@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CurrentStopCard } from "@/components/route-session/current-stop-card";
 import { DayProgressCard } from "@/components/route-session/day-progress-card";
 import { NextStopCard } from "@/components/route-session/next-stop-card";
+import { RouteAdjustmentCard } from "@/components/route-session/route-adjustment-card";
 import { RouteProgressBar } from "@/components/route-session/route-progress";
 import { RouteSessionActions } from "@/components/route-session/route-session-actions";
 import { RouteSuggestionsCard } from "@/components/route-session/route-suggestions-card";
@@ -114,6 +115,20 @@ export default async function RouteSessionPage({ params }: { params: Promise<{ r
             <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.route.returnHint}</p>
           </Card>
         ) : null}
+        <RouteAdjustmentCard
+          badge={dict.route.adjustmentBadge}
+          title={dict.route.adjustmentTitle}
+          body={dict.route.adjustmentBody}
+          options={[
+            dict.route.adjustmentOptionToday,
+            dict.route.adjustmentOptionList,
+            dict.route.adjustmentOptionSession
+          ]}
+          primaryLabel={dict.route.adjustmentPrimaryCta}
+          primaryHref={`/today?listId=${routePlan.listId}`}
+          secondaryLabel={dict.route.adjustmentSecondaryCta}
+          secondaryHref={`/lists/${routePlan.listId}`}
+        />
         <RouteSuggestionsCard
           routePlanId={routePlan.id}
           suggestions={suggestionResult.suggestions}

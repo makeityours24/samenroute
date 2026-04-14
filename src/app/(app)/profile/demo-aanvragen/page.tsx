@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { DemoRequestRepository } from "@/server/repositories/demo-request.repository";
+import type { DemoRequest } from "@prisma/client";
 
 const demoRequestRepository = new DemoRequestRepository();
 
@@ -35,7 +36,7 @@ export default async function DemoRequestsPage() {
         />
       ) : (
         <section className="space-y-3">
-          {requests.map((request) => (
+          {requests.map((request: DemoRequest & { createdByUser?: { id: string; email: string; name: string | null } | null }) => (
             <Card key={request.id} className="space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1">

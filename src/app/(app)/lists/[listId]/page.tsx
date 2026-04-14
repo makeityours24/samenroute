@@ -36,7 +36,7 @@ export default async function ListDetailPage({
   searchParams
 }: {
   params: Promise<{ listId: string }>;
-  searchParams?: Promise<{ edit?: string; import?: string; count?: string; skipped?: string; message?: string }>;
+  searchParams?: Promise<{ edit?: string; import?: string; count?: string; skipped?: string; message?: string; focus?: string }>;
 }) {
   const { listId } = await params;
   const query = searchParams ? await searchParams : undefined;
@@ -163,7 +163,10 @@ export default async function ListDetailPage({
         />
       </section>
       {canMutateList ? (
-        <details className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]">
+        <details
+          open={query?.focus === "csv-import"}
+          className="rounded-[var(--radius)] border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+        >
           <summary className="cursor-pointer list-none text-[15px] font-semibold">CSV importeren</summary>
           <div className="mt-4 space-y-4">
             <SectionHeader

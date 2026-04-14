@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/auth";
-import { duplicateListAction } from "@/app/(app)/actions";
+import { createListAction, createListAndOpenImportAction, duplicateListAction } from "@/app/(app)/actions";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { ListCard } from "@/components/lists/list-card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,8 @@ import { PageContainer } from "@/components/ui/page-container";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Textarea } from "@/components/ui/textarea";
-import { createListAction } from "@/app/(app)/actions";
 import { getDictionary } from "@/lib/i18n/server";
+import { FileSpreadsheet, ArrowRight } from "lucide-react";
 
 const listRepository = new ListRepository();
 
@@ -64,7 +64,31 @@ export default async function ListsPage() {
             </div>
           ))
         ) : (
-          <EmptyState title={dict.lists.noLists} description={dict.lists.noListsBody} />
+          <div className="space-y-3">
+            <EmptyState title={dict.lists.noLists} description={dict.lists.noListsBody} />
+            <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] px-4 py-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
+                Zakelijke snelle start
+              </div>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+                Heb je al een adressenlijst uit Excel of CRM? Maak hier direct een lijst aan en open daarna meteen de CSV-import.
+              </p>
+              <form action={createListAndOpenImportAction} className="mt-4 space-y-3">
+                <Input name="name" placeholder="Bezichtigingen week 16" aria-label="Zakelijke lijstnaam" required />
+                <Textarea
+                  name="description"
+                  placeholder="Importeer adressen en laat daarna de slimste volgorde voorstellen"
+                  aria-label="Zakelijke lijstomschrijving"
+                />
+                <Input name="coverColor" placeholder="#1F7A5C" aria-label="Lijstkleur" />
+                <Button type="submit" fullWidth>
+                  Maak lijst en open CSV-import
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
+          </div>
         )}
       </section>
       {archivedLists.length > 0 ? (

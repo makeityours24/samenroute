@@ -47,6 +47,18 @@ export async function createListAction(formData: FormData) {
   revalidatePath("/home");
 }
 
+export async function createListAndOpenImportAction(formData: FormData) {
+  const user = await requireUserOrThrow();
+  const list = await createListService(user, {
+    name: String(formData.get("name") ?? ""),
+    description: String(formData.get("description") ?? "") || undefined,
+    coverColor: String(formData.get("coverColor") ?? "") || undefined
+  });
+  revalidatePath("/lists");
+  revalidatePath("/home");
+  redirect(`/lists/${list.id}?focus=csv-import`);
+}
+
 export async function updateListAction(formData: FormData) {
   const user = await requireUserOrThrow();
   const listId = String(formData.get("listId") ?? "");

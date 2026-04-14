@@ -9,10 +9,6 @@ import { PlaceRepository } from "@/server/repositories/place.repository";
 const placeRepository = new PlaceRepository();
 
 export async function importListPlacesService(user: AuthorizedUser, input: { listId: string; filename: string; content: string }) {
-  if (!input.filename.toLowerCase().endsWith(".csv")) {
-    throw new AppError("Gebruik een CSV-bestand voor deze eerste importversie.");
-  }
-
   if (input.content.length > 1024 * 1024) {
     throw new AppError("Het CSV-bestand is te groot. Gebruik een bestand tot ongeveer 1 MB.");
   }

@@ -37,11 +37,6 @@ export function CsvImportForm({
       return;
     }
 
-    if (!nextFile.name.toLowerCase().endsWith(".csv")) {
-      setPreviewError("Gebruik voor nu een CSV-bestand.");
-      return;
-    }
-
     try {
       const text = await nextFile.text();
       const rows = parseCsv(text);
@@ -95,9 +90,17 @@ export function CsvImportForm({
             </p>
           </div>
         </div>
+        <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--muted-foreground)]">
+          Heb je nog geen bestand klaarstaan?
+          {" "}
+          <a href="/examples/makelaars-import-voorbeeld.csv" className="font-semibold text-[var(--accent)] underline-offset-4 hover:underline">
+            Download hier eerst het voorbeeldbestand
+          </a>
+          .
+        </div>
         <Input
           type="file"
-          accept=".csv,text/csv"
+          accept=".csv,text/csv,text/plain,application/vnd.ms-excel"
           onChange={(event) => {
             void handleFileChange(event.target.files?.[0] ?? null);
           }}

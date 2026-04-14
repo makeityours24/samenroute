@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { AppTopBar } from "@/components/navigation/app-topbar";
 import { BehaviorInsightsCard } from "@/components/behavior/behavior-insights-card";
 import { DayPlanSuggestionsCard } from "@/components/today/day-plan-suggestions-card";
 import { PlanningFlowCard } from "@/components/today/planning-flow-card";
 import { PlannerForm } from "@/components/today/planner-form";
 import { RoutePreviewCard } from "@/components/today/route-preview-card";
+import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/auth";
 import { ListRepository } from "@/server/repositories/list.repository";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17,6 +19,7 @@ import { getUserBehaviorInsightsService } from "@/server/services/behavior/get-u
 import { getListPlacePreferenceInsightsService } from "@/server/services/list-places/get-list-place-preference-insights.service";
 import { ListDayPlanSelectionRepository } from "@/server/repositories/list-day-plan-selection.repository";
 import { suggestDayPlans } from "@/server/services/routes/suggest-day-plans.service";
+import { ArrowRight, BriefcaseBusiness, FileSpreadsheet } from "lucide-react";
 
 const listRepository = new ListRepository();
 const listDayPlanSelectionRepository = new ListDayPlanSelectionRepository();
@@ -123,6 +126,32 @@ export default async function TodayPage({
       <AppTopBar title={dict.today.topTitle} subtitle={dict.today.topSubtitle} />
       {detail ? (
         <>
+          <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+              <BriefcaseBusiness className="h-4 w-4 text-[var(--accent)]" />
+              {dict.today.workflowTitle}
+            </div>
+            <p className="text-sm leading-6 text-[var(--muted-foreground)]">{dict.today.workflowBody}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                href={`/lists/${detail.id}?focus=csv-import#csv-import`}
+                className="flex items-center justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
+              >
+                <span className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  {dict.today.workflowImportCta}
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href={`/lists/${detail.id}`}
+                className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-sm font-semibold text-[var(--foreground)]"
+              >
+                <span>{dict.today.workflowListCta}</span>
+                <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+              </Link>
+            </div>
+          </Card>
           <PlanningFlowCard
             title={dict.today.flowTitle}
             subtitle={dict.today.flowSubtitle}

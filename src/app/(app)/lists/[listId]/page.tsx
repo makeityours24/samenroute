@@ -194,8 +194,24 @@ export default async function ListDetailPage({
         <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
         {importStatus === "success" ? (
           <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--foreground)] shadow-[var(--shadow-soft)]">
-            {importedCount} plekken geimporteerd.
-            {skippedCount > 0 ? ` ${skippedCount} regels zijn overgeslagen omdat ze leeg of dubbel waren.` : ""}
+            <p>
+              {importedCount} plekken geimporteerd.
+              {skippedCount > 0 ? ` ${skippedCount} regels zijn overgeslagen omdat ze leeg of dubbel waren.` : ""}
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <Link
+                href={`/today?listId=${list.id}`}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow)]"
+              >
+                {dict.listDetail.importSuccessPlanCta}
+              </Link>
+              <Link
+                href={`/lists/${list.id}?focus=add-place#add-place`}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+              >
+                {dict.listDetail.importSuccessAddCta}
+              </Link>
+            </div>
           </div>
         ) : null}
         {importStatus === "error" && importMessage ? (

@@ -55,6 +55,7 @@ export function PlaceForm({
   enableLookup?: boolean;
   copy?: {
     flowHint: string;
+    resetForm: string;
     name: string;
     lookupTitle: string;
     lookupHint: string;
@@ -82,6 +83,7 @@ export function PlaceForm({
 }) {
   const labels = copy ?? {
     flowHint: "Start with the name or address. If a suggestion looks right, tap it to fill the rest faster.",
+    resetForm: "Start a new place",
     lookupTitle: "Smart suggestions",
     lookupHint: "We suggest places based on what you type and use city or country to narrow the results.",
     lookupFlowHint: "You do not need to fill everything yourself. A good suggestion can complete the address and location details.",
@@ -123,6 +125,58 @@ export function PlaceForm({
   const [lookupResults, setLookupResults] = useState<LookupItem[]>([]);
   const [lookupPending, setLookupPending] = useState(false);
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setName(initialValues?.name ?? "");
+    setAddressLine(initialValues?.addressLine ?? "");
+    setCity(initialValues?.city ?? "");
+    setCountry(initialValues?.country ?? "");
+    setCategoryId(initialValues?.categoryId ?? "");
+    setNote(initialValues?.note ?? "");
+    setPriority(String(initialValues?.priority ?? 0));
+    setIncludeInRoute(initialValues?.includeInRoute ?? true);
+    setIsFavorite(initialValues?.isFavorite ?? false);
+    setExternalSourceId(initialValues?.externalSourceId ?? "");
+    setLatitude(initialValues?.latitude != null ? String(initialValues.latitude) : "");
+    setLongitude(initialValues?.longitude != null ? String(initialValues.longitude) : "");
+    setGoogleMapsUrl(initialValues?.googleMapsUrl ?? "");
+    setLookupResults([]);
+    setLookupPending(false);
+    setLookupMessage(null);
+  }, [initialValues]);
+
+  function clearSuggestionContext() {
+    if (!externalSourceId && !latitude && !longitude && !googleMapsUrl) {
+      return;
+    }
+
+    setExternalSourceId("");
+    setLatitude("");
+    setLongitude("");
+    setGoogleMapsUrl("");
+    setCity("");
+    setCountry("");
+    setLookupMessage(null);
+  }
+
+  function resetForm() {
+    setName("");
+    setAddressLine("");
+    setCity("");
+    setCountry("");
+    setCategoryId("");
+    setNote("");
+    setPriority("0");
+    setIncludeInRoute(true);
+    setIsFavorite(false);
+    setExternalSourceId("");
+    setLatitude("");
+    setLongitude("");
+    setGoogleMapsUrl("");
+    setLookupResults([]);
+    setLookupPending(false);
+    setLookupMessage(null);
+  }
 
   const lookupQuery = useMemo(() => {
     const primary = name.trim();
@@ -195,8 +249,8 @@ export function PlaceForm({
 
     setName(item.name);
     setAddressLine(item.addressLine ?? "");
-    setCity(item.city ?? city);
-    setCountry(item.country ?? country);
+    setCity(item.city ?? "");
+    setCountry(item.country ?? "");
     setExternalSourceId(item.externalSourceId);
     setLatitude(item.latitude !== undefined ? String(item.latitude) : "");
     setLongitude(item.longitude !== undefined ? String(item.longitude) : "");
@@ -212,19 +266,49 @@ export function PlaceForm({
       <input type="hidden" name="longitude" value={longitude} />
       <input type="hidden" name="googleMapsUrl" value={googleMapsUrl} />
       <Card className="bg-[var(--surface-subtle)] p-3">
-        <p className="text-sm leading-6 text-[var(--muted-foreground)]">{labels.flowHint}</p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm leading-6 text-[var(--muted-foreground)]">{labels.flowHint}</p>
+          {name || addressLine || city || country || note || externalSourceId ? (
+            <button
+              type="button"
+              className="shrink-0 rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-[var(--surface)]"
+              onClick={resetForm}
+            >
+              {labels.resetForm}
+            </button>
+          ) : null}
+        </div>
       </Card>
       <div className="space-y-2">
         <label htmlFor="place-name" className="text-sm font-medium">
           {labels.name}
         </label>
-        <Input id="place-name" name="name" placeholder={labels.namePlaceholder} required value={name} onChange={(event) => setName(event.target.value)} />
+        <Input
+          id="place-name"
+          name="name"
+          placeholder={labels.namePlaceholder}
+          required
+          value={name}
+          onChange={(event) => {
+            clearSuggestionContext();
+            setName(event.target.value);
+          }}
+        />
       </div>
       <div className="space-y-2">
         <label htmlFor="place-address" className="text-sm font-medium">
           {labels.address}
         </label>
-        <Input id="place-address" name="addressLine" placeholder={labels.addressPlaceholder} value={addressLine} onChange={(event) => setAddressLine(event.target.value)} />
+        <Input
+          id="place-address"
+          name="addressLine"
+          placeholder={labels.addressPlaceholder}
+          value={addressLine}
+          onChange={(event) => {
+            clearSuggestionContext();
+            setAddressLine(event.target.value);
+          }}
+        />
       </div>
       {enableLookup ? (
         <Card className="space-y-3 bg-[var(--surface-subtle)] p-3">

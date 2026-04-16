@@ -156,6 +156,14 @@ export default async function TodayPage({
           dict.today.smartReasonLearning
         ]
       : [];
+  const recommendedStopLabel =
+    audience === "business"
+      ? dict.today.recommendedStopLabel
+      : locale === "en"
+        ? "Fits your day"
+        : locale === "tr"
+          ? "Gününe uyuyor"
+          : "Past bij jouw dag";
   const plannerStops = detail
     ? detail.listPlaces
         .filter((item) => item.status === "PLANNED")
@@ -174,21 +182,33 @@ export default async function TodayPage({
         }))
         .sort((left, right) => Number(right.recommended) - Number(left.recommended))
     : [];
-  const recommendedStopLabel =
-    audience === "business"
-      ? dict.today.recommendedStopLabel
-      : locale === "en"
-        ? "Fits your day"
-        : locale === "tr"
-          ? "Gününe uyuyor"
-          : "Past bij jouw dag";
   const todayIntroCopy =
     audience === "business"
       ? {
-          title: dict.today.workflowTitle,
-          body: dict.today.workflowBody,
-          primary: dict.today.workflowImportCta,
-          secondary: dict.today.workflowListCta,
+          title:
+            locale === "en"
+              ? "Prepare the workday before navigation"
+              : locale === "tr"
+                ? "Navigasyondan once is gununu hazirla"
+                : "Bereid eerst de werkdag voor",
+          body:
+            locale === "en"
+              ? "First update the work list, then pin fixed appointments, and only after that let SamenRoute work out the practical order."
+              : locale === "tr"
+                ? "Once is listesini guncelle, sonra sabit randevulari sabitle, en son SamenRoute pratik sirayi cikarsin."
+                : "Werk eerst de werklijst bij, zet daarna vaste afspraken vast en laat SamenRoute pas daarna de praktische volgorde uitwerken.",
+          primary:
+            locale === "en"
+              ? "Back to CSV import"
+              : locale === "tr"
+                ? "CSV ice aktarmaya don"
+                : "Terug naar CSV-import",
+          secondary:
+            locale === "en"
+              ? "Open work list"
+              : locale === "tr"
+                ? "Is listesini ac"
+                : "Open werklijst",
           primaryHref: `/lists/${detail?.id ?? ""}?focus=csv-import#csv-import`,
           badgeBusiness: true
         }
@@ -236,16 +256,77 @@ export default async function TodayPage({
               badge: "Birden fazla gün önerisi",
               title: "SamenRoute bunu daha sakin günlere bölebilir",
               subtitle: `Bu liste ${dayPlans.length} ayrı gün önerisine daha uygun görünüyor.`
+          }
+        : {
+            badge: "Meerdere dagvoorstellen",
+            title: "SamenRoute kan dit verdelen over rustigere dagen",
+          subtitle: `Deze lijst lijkt beter te passen in ${dayPlans.length} losse dagvoorstellen.`
+        };
+  const planningFlowCopy =
+    audience === "business"
+      ? locale === "en"
+        ? {
+            title: "Business order",
+            subtitle: "First choose the right addresses, then respect fixed appointments, and only after that open navigation.",
+            steps: [
+              "Choose the addresses that truly belong to this workday",
+              "Pin time-sensitive stops so they stay in place",
+              "Let SamenRoute fill the open gaps in the most practical order"
+            ]
+          }
+        : locale === "tr"
+          ? {
+              title: "Is gunu sirasi",
+              subtitle: "Once dogru adresleri sec, sonra sabit randevulari koru, en son navigasyona gec.",
+              steps: [
+                "Bu is gunune ait dogru adresleri sec",
+                "Saati belli duraklari sabitle",
+                "SamenRoute kalan bosluklari en mantikli sirayla doldursun"
+              ]
             }
           : {
-              badge: "Meerdere dagvoorstellen",
-              title: "SamenRoute kan dit verdelen over rustigere dagen",
-              subtitle: `Deze lijst lijkt beter te passen in ${dayPlans.length} losse dagvoorstellen.`
-            };
+              title: "Werkdagvolgorde",
+              subtitle: "Kies eerst de juiste adressen, houd vaste afspraken op hun plek en open pas daarna navigatie.",
+              steps: [
+                "Selecteer alleen de adressen die echt bij deze werkdag horen",
+                "Zet tijdsgebonden stops vast zodat ze op hun plek blijven",
+                "Laat SamenRoute de open ruimte daartussen logisch invullen"
+              ]
+            }
+      : {
+          title: dict.today.flowTitle,
+          subtitle: dict.today.flowSubtitle,
+          steps: [
+            dict.today.flowStepChooseDay,
+            dict.today.flowStepConfirmRoute,
+            dict.today.flowStepOpenMaps
+          ]
+        };
+  const businessTeamCount = detail?.members.length ?? 0;
+  const todayTopCopy =
+    audience === "business"
+      ? locale === "en"
+        ? {
+            title: "Workday order",
+            subtitle: "Check the work list first, pin fixed appointments, then let SamenRoute order the rest."
+          }
+        : locale === "tr"
+          ? {
+              title: "Is gunu sirasi",
+              subtitle: "Once listeyi kontrol et, sabit randevulari sabitle, sonra kalani SamenRoute duzenlesin."
+            }
+          : {
+              title: "Werkdagvolgorde",
+              subtitle: "Controleer eerst de lijst, zet vaste afspraken vast en laat daarna SamenRoute de rest ordenen."
+            }
+      : {
+          title: dict.today.topTitle,
+          subtitle: dict.today.topSubtitle
+        };
 
   return (
     <PageContainer className="gap-4">
-      <AppTopBar title={dict.today.topTitle} subtitle={dict.today.topSubtitle} />
+      <AppTopBar title={todayTopCopy.title} subtitle={todayTopCopy.subtitle} />
       {detail ? (
         <>
           <Card className="space-y-3 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
@@ -279,15 +360,50 @@ export default async function TodayPage({
             </div>
           </Card>
           <PlanningFlowCard
-            title={dict.today.flowTitle}
-            subtitle={dict.today.flowSubtitle}
-            steps={[
-              dict.today.flowStepChooseDay,
-              dict.today.flowStepConfirmRoute,
-              dict.today.flowStepOpenMaps
-            ]}
+            title={planningFlowCopy.title}
+            subtitle={planningFlowCopy.subtitle}
+            steps={planningFlowCopy.steps}
           />
-          {dayPlans.length > 1 ? (
+          {audience === "business" ? (
+            <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                <BriefcaseBusiness className="h-3.5 w-3.5" />
+                Zakelijke stuurpunten
+              </div>
+              <div className="grid gap-3 lg:grid-cols-3">
+                <div className="rounded-2xl bg-white/90 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">CSV eerst</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Werk nieuwe adressen eerst in je lijst bij.</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
+                    Zo laat je de dagvolgorde altijd rekenen op de meest complete adressenlijst.
+                  </p>
+                  <Link href={`/lists/${detail.id}?focus=csv-import#csv-import`} className="mt-3 inline-flex text-sm font-semibold text-[var(--accent)]">
+                    Open import
+                  </Link>
+                </div>
+                <div className="rounded-2xl bg-white/90 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Vaste afspraken</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Zet in stap 2 stops vast die al tijdsgebonden zijn.</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
+                    SamenRoute laat die ankers staan en ordent alleen de open ruimte daar logisch omheen.
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/90 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Teamflow</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
+                    {businessTeamCount > 1 ? `${businessTeamCount} teamleden kijken mee in deze lijst.` : "Deze lijst staat nog vooral op jou alleen."}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
+                    Deel de lijst met collega&apos;s zodra je samen bezichtigingen of afspraken wilt voorbereiden.
+                  </p>
+                  <Link href={`/lists/${detail.id}/members`} className="mt-3 inline-flex text-sm font-semibold text-[var(--accent)]">
+                    Beheer team
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          ) : null}
+          {audience !== "business" && dayPlans.length > 1 ? (
             <DayPlanSuggestionsCard
               listId={detail.id}
               plans={dayPlans}
@@ -323,7 +439,7 @@ export default async function TodayPage({
               }}
             />
           ) : null}
-          {selectedDayPlan || hasSuggestedDayPlan ? (
+          {audience !== "business" && (selectedDayPlan || hasSuggestedDayPlan) ? (
             <SmartDayExplanationCard
               badge={dict.today.smartExplanationBadge}
               title={
@@ -341,7 +457,7 @@ export default async function TodayPage({
               learningBody={dict.today.learningBody}
             />
           ) : null}
-          {behavior ? (
+          {audience !== "business" && behavior ? (
             <BehaviorInsightsCard
               title={dict.today.behaviorTitle}
               subtitle={dict.today.behaviorSubtitle}
@@ -358,7 +474,15 @@ export default async function TodayPage({
             lists={mutableLists.map((list) => ({ id: list.id, name: list.name }))}
             selectedListId={detail.id}
             initialError={params?.error === "no-stops" ? dict.today.selectAtLeastOneStop : undefined}
-            submitLabel={dict.today.generateRoute}
+            submitLabel={
+              audience === "business"
+                ? locale === "en"
+                  ? "Create workday proposal"
+                  : locale === "tr"
+                    ? "Is gunu onerisi olustur"
+                    : "Maak werkdagvoorstel"
+                : dict.today.generateRoute
+            }
             stops={plannerStops}
             initialMaxStops={selectedDayPlan ? selectedDayPlan.stopIds.length : hasSuggestedDayPlan ? recommendedStopIds.size : undefined}
             initialTransportMode={behavior?.recommendedTransportMode}
@@ -407,36 +531,315 @@ export default async function TodayPage({
                   )
                 : undefined
             }
-            copy={dict.today}
+            copy={
+              audience === "business"
+                ? {
+                    ...dict.today,
+                    step1:
+                      locale === "en"
+                        ? "Choose work list"
+                        : locale === "tr"
+                          ? "Is listesi sec"
+                          : "Kies werklijst",
+                    step2:
+                      locale === "en"
+                        ? "Choose addresses for this workday"
+                        : locale === "tr"
+                          ? "Bu is gunu icin adresleri sec"
+                          : "Kies adressen voor deze werkdag",
+                    step3:
+                      locale === "en"
+                        ? "Work out the route proposal"
+                        : locale === "tr"
+                          ? "Rota onerisi hazirla"
+                          : "Werk routevoorstel uit",
+                    step2Help:
+                      locale === "en"
+                        ? "Only checked addresses go into this workday proposal."
+                        : locale === "tr"
+                          ? "Sadece isaretli adresler bu is gunu onerisine girer."
+                          : "Alleen aangevinkte adressen gaan mee in dit werkdagvoorstel.",
+                    chooseList:
+                      locale === "en"
+                        ? "Choose work list"
+                        : locale === "tr"
+                          ? "Is listesi sec"
+                          : "Kies werklijst",
+                    routeTitle:
+                      locale === "en"
+                        ? "Workday label"
+                        : locale === "tr"
+                          ? "Is gunu etiketi"
+                          : "Werkdaglabel",
+                    routeTitleDefault:
+                      locale === "en"
+                        ? "Viewing day"
+                        : locale === "tr"
+                          ? "Gosterim gunu"
+                          : "Bezichtigingsdag",
+                    routeOrderingStrategy:
+                      locale === "en"
+                        ? "Order strategy"
+                        : locale === "tr"
+                          ? "Siralama stratejisi"
+                          : "Volgordestrategie",
+                    routeOrderingStrategyHelp:
+                      locale === "en"
+                        ? "Choose whether SamenRoute mainly optimizes for speed, priority, or your existing order."
+                        : locale === "tr"
+                          ? "SamenRoute hiz, oncelik ya da mevcut siraya gore agirlik versin."
+                          : "Kies of SamenRoute vooral op snelheid, prioriteit of je bestaande volgorde moet sturen.",
+                    fastestRoute:
+                      locale === "en"
+                        ? "Most practical"
+                        : locale === "tr"
+                          ? "En pratik"
+                          : "Meest praktisch",
+                    priorityFirst:
+                      locale === "en"
+                        ? "Priority first"
+                        : locale === "tr"
+                          ? "Oncelik once"
+                          : "Prioriteit eerst",
+                    manualOrder:
+                      locale === "en"
+                        ? "Keep my order"
+                        : locale === "tr"
+                          ? "Sirami koru"
+                          : "Volg mijn volgorde",
+                    extrasTitle:
+                      locale === "en"
+                        ? "Fine-tuning"
+                        : locale === "tr"
+                          ? "Ince ayar"
+                          : "Fijnafstelling",
+                    extrasHelp:
+                      locale === "en"
+                        ? "Use this to keep the proposal realistic for your day."
+                        : locale === "tr"
+                          ? "Oneriyi is gunune daha gercekci uydurmak icin kullan."
+                          : "Gebruik dit om het voorstel realistischer te maken voor je werkdag.",
+                    maxStops:
+                      locale === "en"
+                        ? "Max addresses"
+                        : locale === "tr"
+                          ? "Maksimum adres"
+                          : "Max adressen",
+                    maxStopsHelp:
+                      locale === "en"
+                        ? "Limit how many selected addresses go into this workday proposal."
+                        : locale === "tr"
+                          ? "Bu is gunu onerisine kac secili adres girecegini sinirla."
+                          : "Beperk hoeveel geselecteerde adressen meegaan in dit werkdagvoorstel.",
+                    startPoint:
+                      locale === "en"
+                        ? "Departure point"
+                        : locale === "tr"
+                          ? "Cikis noktasi"
+                          : "Vertrekpunt",
+                    startPointPlaceholder:
+                      locale === "en"
+                        ? "Office, home, or first appointment"
+                        : locale === "tr"
+                          ? "Ofis, ev ya da ilk randevu"
+                          : "Kantoor, thuis of eerste afspraak",
+                    startPointHelp:
+                      locale === "en"
+                        ? "Optional. Useful when the workday clearly starts from one fixed place."
+                        : locale === "tr"
+                          ? "Istege bagli. Is gunu sabit bir yerden basliyorsa kullanisli."
+                          : "Optioneel. Handig als de werkdag duidelijk vanaf een vaste plek begint.",
+                    selectedStopsSummary:
+                      locale === "en"
+                        ? "addresses selected for this workday"
+                        : locale === "tr"
+                          ? "adres bu is gunu icin secildi"
+                          : "adressen geselecteerd voor deze werkdag",
+                    recommendedStopsHint:
+                      locale === "en"
+                        ? "SamenRoute can already sort likely fits higher based on your list signals, but you stay in control."
+                        : locale === "tr"
+                          ? "SamenRoute sinyallere gore uygun adaylari yukariya alabilir ama kontrol sende kalir."
+                          : "SamenRoute kan waarschijnlijke kandidaten alvast hoger zetten op basis van je lijstsignalen, maar jij houdt de regie.",
+                    recommendedBadge:
+                      locale === "en"
+                        ? "Likely fit"
+                        : locale === "tr"
+                          ? "Uygun aday"
+                          : "Logische kandidaat",
+                    fixedPlanningTitle:
+                      locale === "en"
+                        ? "Fixed appointments"
+                        : locale === "tr"
+                          ? "Sabit randevular"
+                          : "Vaste afspraken",
+                    fixedPlanningHelp:
+                      locale === "en"
+                        ? "Mark stops that already have a fixed time. SamenRoute keeps those anchors in place."
+                        : locale === "tr"
+                          ? "Saati belli duraklari isaretle. SamenRoute bu capalari yerinde tutar."
+                          : "Markeer stops die al een vast tijdslot hebben. SamenRoute houdt die ankers op hun plek.",
+                    fixedPlanningEmpty:
+                      locale === "en"
+                        ? "No fixed appointments selected yet. Then SamenRoute determines the full order."
+                        : locale === "tr"
+                          ? "Henuz sabit randevu secilmedi. O zaman tam sirayi SamenRoute belirler."
+                          : "Nog geen vaste afspraken geselecteerd. Dan bepaalt SamenRoute de volledige volgorde.",
+                    fixedPlanningActive:
+                      locale === "en"
+                        ? "{count} fixed appointment stays in place; the open addresses are arranged around it."
+                        : locale === "tr"
+                          ? "{count} sabit randevu yerinde kalir; acik adresler onun etrafinda siralanir."
+                          : "{count} vaste afspraak blijft op zijn plek; de open adressen worden daar logisch omheen gezet.",
+                    fixedPlanningActivePlural:
+                      locale === "en"
+                        ? "{count} fixed appointments stay in place; the open addresses are arranged around them."
+                        : locale === "tr"
+                          ? "{count} sabit randevu yerinde kalir; acik adresler bunlarin etrafinda siralanir."
+                          : "{count} vaste afspraken blijven op hun plek; de open adressen worden daar logisch omheen gezet.",
+                    fixedStopBadge:
+                      locale === "en"
+                        ? "Fixed slot"
+                        : locale === "tr"
+                          ? "Sabit slot"
+                          : "Vast slot",
+                    makeFixedStop:
+                      locale === "en"
+                        ? "Pin appointment"
+                        : locale === "tr"
+                          ? "Randevuyu sabitle"
+                          : "Zet afspraak vast",
+                    removeFixedStop:
+                      locale === "en"
+                        ? "Release appointment"
+                        : locale === "tr"
+                          ? "Randevuyu loslat"
+                          : "Maak afspraak vrij",
+                    smartProposalLabel:
+                      locale === "en"
+                        ? "Practical draft"
+                        : locale === "tr"
+                          ? "Pratik taslak"
+                          : "Praktisch voorstel",
+                    routeStrategySummaryFastest:
+                      locale === "en"
+                        ? "Best when you mainly want the most practical line through the day."
+                        : locale === "tr"
+                          ? "Gun icin en pratik hatta agirlik vermek istediginde en iyisi."
+                          : "Beste keuze als je vooral een zo praktisch mogelijke lijn door de dag wilt.",
+                    routeStrategySummaryPriority:
+                      locale === "en"
+                        ? "Best when important addresses should come earlier, even if that costs a little travel time."
+                        : locale === "tr"
+                          ? "Onemli adresler biraz ekstra yol pahasina once gelmeli ise en iyisi."
+                          : "Beste keuze als belangrijke adressen eerder moeten komen, ook als dat iets extra reistijd kost.",
+                    routeStrategySummaryManual:
+                      locale === "en"
+                        ? "Best when your office or team already decided the sequence."
+                        : locale === "tr"
+                          ? "Ofis ya da ekip sirayi zaten belirlediyse en iyisi."
+                          : "Beste keuze als kantoor of team de volgorde al heeft bepaald.",
+                    noStopsTitle:
+                      locale === "en"
+                        ? "This work list has no open addresses"
+                        : locale === "tr"
+                          ? "Bu is listesinde acik adres yok"
+                          : "Deze werklijst heeft nog geen open adressen",
+                    noStopsBody:
+                      locale === "en"
+                        ? "Open the list first, import addresses, or add one manually before creating a workday proposal."
+                        : locale === "tr"
+                          ? "Once listeyi ac, adres ice aktar ya da elle ekle; sonra is gunu onerisi olustur."
+                          : "Open eerst de lijst, importeer adressen of voeg er handmatig een toe voordat je een werkdagvoorstel maakt."
+                  }
+                : dict.today
+            }
           />
           {detail.routePlans[0] ? (
             <section className="space-y-3">
               <SectionHeader title={dict.today.currentProposal} subtitle={dict.today.currentProposalSubtitle} />
               <RoutePreviewCard
-              title={detail.routePlans[0].title ?? dict.today.savedRoute}
+                title={detail.routePlans[0].title ?? dict.today.savedRoute}
                 mapsUrl={detail.routePlans[0].googleMapsUrl}
                 routeHref={`/route/${detail.routePlans[0].id}`}
                 stops={detail.routePlans[0].stops.map((stop) => stop.listPlace.place.name)}
                 copy={{
-                  badge: dict.today.routePreview,
+                  badge:
+                    audience === "business"
+                      ? locale === "en"
+                        ? "Workday proposal"
+                        : locale === "tr"
+                          ? "Is gunu onerisi"
+                          : "Werkdagvoorstel"
+                      : dict.today.routePreview,
                   stops: dict.today.stops,
-                  openMaps: dict.today.openGoogleMaps,
-                  openProposal: dict.today.openProposal,
-                  helper: dict.today.routePreviewHelper
+                  openMaps:
+                    audience === "business"
+                      ? locale === "en"
+                        ? "Open in Google Maps"
+                        : locale === "tr"
+                          ? "Google Maps'te ac"
+                          : "Open in Google Maps"
+                      : dict.today.openGoogleMaps,
+                  openProposal:
+                    audience === "business"
+                      ? locale === "en"
+                        ? "Open route session"
+                        : locale === "tr"
+                          ? "Rota oturumunu ac"
+                          : "Open routesessie"
+                      : dict.today.openProposal,
+                  helper:
+                    audience === "business"
+                      ? locale === "en"
+                        ? "Check the proposal first, then continue into navigation for the actual workday."
+                        : locale === "tr"
+                          ? "Once oneriyi kontrol et, sonra gercek is gunu icin navigasyona gec."
+                          : "Controleer eerst het voorstel en ga daarna pas naar navigatie voor de echte werkdag."
+                      : dict.today.routePreviewHelper
                 }}
               />
             </section>
           ) : null}
         </>
       ) : (
-        <EmptyState
-          title={lists.length > 0 ? dict.today.noEditableList : dict.today.nothingToPlan}
-          description={
-            lists.length > 0
-              ? dict.today.noEditableListBody
-              : dict.today.nothingToPlanBody
-          }
-        />
+        <>
+          <EmptyState
+            title={lists.length > 0 ? dict.today.noEditableList : dict.today.nothingToPlan}
+            description={lists.length > 0 ? dict.today.noEditableListBody : dict.today.nothingToPlanBody}
+          />
+          {audience === "business" ? (
+            <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] p-4 shadow-[var(--shadow-soft)]">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                <BriefcaseBusiness className="h-3.5 w-3.5" />
+                Eerst dit
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl bg-white/90 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">1</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Maak of open een werklijst</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">Daar verzamel je eerst alle adressen van die dag.</p>
+                </div>
+                <div className="rounded-2xl bg-white/90 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">2</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Importeer of vul uitzonderingen aan</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">Gebruik CSV voor bulk en handmatig alleen voor losse aanvullingen.</p>
+                </div>
+                <div className="rounded-2xl bg-white/90 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">3</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">Laat pas daarna de dagvolgorde maken</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">Dan kan SamenRoute echt logisch sorteren rond vaste afspraken.</p>
+                </div>
+              </div>
+              <Link
+                href="/lists"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow)]"
+              >
+                Open werklijsten
+              </Link>
+            </Card>
+          ) : null}
+        </>
       )}
     </PageContainer>
   );

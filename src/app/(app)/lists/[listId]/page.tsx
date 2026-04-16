@@ -39,7 +39,7 @@ export default async function ListDetailPage({
   searchParams
 }: {
   params: Promise<{ listId: string }>;
-  searchParams?: Promise<{ edit?: string; import?: string; count?: string; skipped?: string; message?: string; focus?: string }>;
+  searchParams?: Promise<{ edit?: string; import?: string; count?: string; skipped?: string; message?: string; focus?: string; placeError?: string }>;
 }) {
   const { listId } = await params;
   const query = searchParams ? await searchParams : undefined;
@@ -60,6 +60,7 @@ export default async function ListDetailPage({
   const importedCount = Number(query?.count ?? 0);
   const skippedCount = Number(query?.skipped ?? 0);
   const importMessage = query?.message ?? "";
+  const placeError = query?.placeError ?? "";
   const membershipRole = list.ownerUserId === user?.id ? ListMemberRole.OWNER : (list.members.find((member) => member.userId === user?.id)?.role ?? undefined);
   const canMutateList = membershipRole === ListMemberRole.OWNER || membershipRole === ListMemberRole.EDITOR;
   const canManageMembers = membershipRole === ListMemberRole.OWNER;
@@ -240,6 +241,73 @@ export default async function ListDetailPage({
           <CsvImportForm action={importListPlacesAction} listId={list.id} businessMode={audience === "business"} />
         </section>
       ) : null}
+      {audience === "business" ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] shadow-[var(--shadow-soft)]">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              Importmapping
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Zo leest deze eerste zakelijke versie je bestand in.</h2>
+              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+                We houden het nu bewust simpel: vaste kolommen eerst, zodat import betrouwbaar blijft en sneller te testen is.
+              </p>
+            </div>
+            <div className="space-y-2">
+              {[
+                ["Adres", "Straat + huisnummer"],
+                ["Plaats", "Stad"],
+                ["Object of woning", "Naam"],
+                ["Opmerking", "Notitie"],
+                ["Type of categorie", "Categorie"]
+              ].map(([source, target]) => (
+                <div key={source} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl bg-white/90 px-4 py-3 text-sm">
+                  <span className="font-semibold text-[var(--foreground)]">{source}</span>
+                  <ArrowRight className="h-4 w-4 text-[var(--muted-foreground)]" />
+                  <span className="text-[var(--muted-foreground)]">{target}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card className="space-y-4 border-transparent bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] shadow-[var(--shadow-soft)]">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+              <MapPinPlusInside className="h-3.5 w-3.5" />
+              Teamflow
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Maak van deze lijst je gedeelde werkblad voor de dag.</h2>
+              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+                Importeer adressen eerst, laat collega&apos;s meekijken waar nodig en werk daarna pas de dagvolgorde uit.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/90 p-4">
+                <p className="text-xs text-[var(--muted-foreground)]">Teamleden</p>
+                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{list.members.length}</p>
+              </div>
+              <div className="rounded-2xl bg-white/90 p-4">
+                <p className="text-xs text-[var(--muted-foreground)]">Open adressen</p>
+                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{plannedCount}</p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                href={`/lists/${list.id}/members`}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+              >
+                Open teamleden
+              </Link>
+              <Link
+                href={`/today?listId=${list.id}`}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow)]"
+              >
+                Werk dagvolgorde uit
+              </Link>
+            </div>
+          </Card>
+        </div>
+      ) : null}
       <section className="space-y-3 pt-1">
         <SectionHeader title={dict.listDetail.placesTitle} subtitle={dict.listDetail.placesSubtitle} />
         {importStatus === "success" ? (
@@ -354,6 +422,11 @@ export default async function ListDetailPage({
           {editingListPlace ? dict.listDetail.edit : audience === "business" ? "Handmatig plek toevoegen als uitzondering" : consumerListFlowCopy.addPlaceSummary}
         </summary>
         <div className="mt-4">
+          {placeError ? (
+            <div className="mb-4 rounded-[var(--radius)] border border-[color:rgba(185,56,47,0.16)] bg-[color:rgba(185,56,47,0.08)] px-4 py-3 text-sm text-[var(--foreground)] shadow-[var(--shadow-soft)]">
+              {placeError}
+            </div>
+          ) : null}
           <PlaceForm
             action={editingListPlace ? updateListPlaceAndPlaceAction : addPlaceAction}
             listId={list.id}

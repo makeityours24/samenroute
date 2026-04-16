@@ -473,7 +473,17 @@ export default async function TodayPage({
             action={generateRouteAction}
             lists={mutableLists.map((list) => ({ id: list.id, name: list.name }))}
             selectedListId={detail.id}
-            initialError={params?.error === "no-stops" ? dict.today.selectAtLeastOneStop : undefined}
+            initialError={
+              params?.error === "no-stops"
+                ? dict.today.selectAtLeastOneStop
+                : params?.error === "route-failed"
+                  ? locale === "en"
+                    ? "We could not create this route proposal right now. Check your selected stops and try again."
+                    : locale === "tr"
+                      ? "Bu rota önerisi şu anda oluşturulamadı. Seçili durakları kontrol edip tekrar dene."
+                      : "We konden dit routevoorstel nu niet maken. Controleer je geselecteerde stops en probeer het opnieuw."
+                  : undefined
+            }
             submitLabel={
               audience === "business"
                 ? locale === "en"

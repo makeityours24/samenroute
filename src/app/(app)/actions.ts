@@ -41,15 +41,20 @@ async function requireUserOrThrow() {
 
 export async function createListAction(formData: FormData) {
   const user = await requireUserOrThrow();
-  const list = await createListService(user, {
-    name: String(formData.get("name") ?? ""),
-    description: String(formData.get("description") ?? "") || undefined,
-    coverColor: String(formData.get("coverColor") ?? "") || undefined
-  });
-  revalidatePath("/lists");
-  revalidatePath("/home");
-  revalidatePath(`/lists/${list.id}`);
-  redirect(`/lists/${list.id}`);
+  try {
+    const list = await createListService(user, {
+      name: String(formData.get("name") ?? ""),
+      description: String(formData.get("description") ?? "") || undefined,
+      coverColor: String(formData.get("coverColor") ?? "") || undefined
+    });
+    revalidatePath("/lists");
+    revalidatePath("/home");
+    revalidatePath(`/lists/${list.id}`);
+    redirect(`/lists/${list.id}`);
+  } catch (error) {
+    const message = error instanceof AppError ? error.message : "Er ging iets mis bij het maken van de lijst.";
+    redirect(`/lists?createError=${encodeURIComponent(message)}`);
+  }
 }
 
 export async function createListAndOpenImportAction(formData: FormData) {
@@ -84,31 +89,36 @@ export async function addPlaceAction(formData: FormData) {
   const user = await requireUserOrThrow();
   const listId = String(formData.get("listId") ?? "");
 
-  const place = await createPlaceService(user, {
-    sourceType: formData.get("externalSourceId") ? "GOOGLE_PLACE" : "MANUAL",
-    externalSourceId: String(formData.get("externalSourceId") ?? "") || undefined,
-    name: String(formData.get("name") ?? ""),
-    addressLine: String(formData.get("addressLine") ?? "") || undefined,
-    city: String(formData.get("city") ?? "") || undefined,
-    country: String(formData.get("country") ?? "") || undefined,
-    latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,
-    longitude: formData.get("longitude") ? Number(formData.get("longitude")) : undefined,
-    googleMapsUrl: String(formData.get("googleMapsUrl") ?? "") || undefined,
-    categoryId: String(formData.get("categoryId") ?? "") || undefined
-  });
+  try {
+    const place = await createPlaceService(user, {
+      sourceType: formData.get("externalSourceId") ? "GOOGLE_PLACE" : "MANUAL",
+      externalSourceId: String(formData.get("externalSourceId") ?? "") || undefined,
+      name: String(formData.get("name") ?? ""),
+      addressLine: String(formData.get("addressLine") ?? "") || undefined,
+      city: String(formData.get("city") ?? "") || undefined,
+      country: String(formData.get("country") ?? "") || undefined,
+      latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,
+      longitude: formData.get("longitude") ? Number(formData.get("longitude")) : undefined,
+      googleMapsUrl: String(formData.get("googleMapsUrl") ?? "") || undefined,
+      categoryId: String(formData.get("categoryId") ?? "") || undefined
+    });
 
-  await addPlaceToListService(user, {
-    listId,
-    placeId: place.id,
-    note: String(formData.get("note") ?? "") || undefined,
-    priority: Number(formData.get("priority") ?? 0),
-    includeInRoute: formData.get("includeInRoute") === "on",
-    isFavorite: formData.get("isFavorite") === "on"
-  });
+    await addPlaceToListService(user, {
+      listId,
+      placeId: place.id,
+      note: String(formData.get("note") ?? "") || undefined,
+      priority: Number(formData.get("priority") ?? 0),
+      includeInRoute: formData.get("includeInRoute") === "on",
+      isFavorite: formData.get("isFavorite") === "on"
+    });
 
-  revalidatePath(`/lists/${listId}`);
-  revalidatePath("/home");
-  redirect(`/lists/${listId}`);
+    revalidatePath(`/lists/${listId}`);
+    revalidatePath("/home");
+    redirect(`/lists/${listId}`);
+  } catch (error) {
+    const message = error instanceof AppError ? error.message : "Er ging iets mis bij het toevoegen van deze plek.";
+    redirect(`/lists/${listId}?focus=add-place&placeError=${encodeURIComponent(message)}#add-place`);
+  }
 }
 
 export async function updateListPlaceAndPlaceAction(formData: FormData) {
@@ -150,20 +160,25 @@ export async function generateRouteAction(formData: FormData) {
     redirect(`/today?listId=${listId}&error=no-stops`);
   }
 
-  const route = await generateRoutePlanService(user, {
-    listId,
-    title: String(formData.get("title") ?? "Vandaag"),
-    transportMode: String(formData.get("transportMode") ?? "WALKING"),
-    routeOrderingStrategy: String(formData.get("routeOrderingStrategy") ?? "FASTEST"),
-    listPlaceIds,
-    fixedListPlaceIds,
-    maxStops: Number(formData.get("maxStops") ?? 4),
-    startPlaceLabel: String(formData.get("startPlaceLabel") ?? "") || undefined,
-    startLatitude: formData.get("startLatitude") ? Number(formData.get("startLatitude")) : undefined,
-    startLongitude: formData.get("startLongitude") ? Number(formData.get("startLongitude")) : undefined
-  });
+  try {
+    const route = await generateRoutePlanService(user, {
+      listId,
+      title: String(formData.get("title") ?? "Vandaag"),
+      transportMode: String(formData.get("transportMode") ?? "WALKING"),
+      routeOrderingStrategy: String(formData.get("routeOrderingStrategy") ?? "FASTEST"),
+      listPlaceIds,
+      fixedListPlaceIds,
+      maxStops: Number(formData.get("maxStops") ?? 4),
+      startPlaceLabel: String(formData.get("startPlaceLabel") ?? "") || undefined,
+      startLatitude: formData.get("startLatitude") ? Number(formData.get("startLatitude")) : undefined,
+      startLongitude: formData.get("startLongitude") ? Number(formData.get("startLongitude")) : undefined
+    });
 
-  redirect(`/route/${route.id}`);
+    redirect(`/route/${route.id}`);
+  } catch (error) {
+    console.error("generateRouteAction failed", error);
+    redirect(`/today?listId=${listId}&error=route-failed`);
+  }
 }
 
 export async function markVisitedAction(formData: FormData) {

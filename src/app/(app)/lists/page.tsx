@@ -13,12 +13,17 @@ import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { getAppAudience } from "@/lib/audience/server";
 import { getDictionary } from "@/lib/i18n/server";
-import { ArrowRight, Download, FileSpreadsheet } from "lucide-react";
+import { ArrowRight, Download, FileSpreadsheet, FolderOpen, Route } from "lucide-react";
 
 const listRepository = new ListRepository();
 
-export default async function ListsPage() {
+export default async function ListsPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ createError?: string }>;
+}) {
   const user = await getCurrentUser();
+  const params = searchParams ? await searchParams : undefined;
   const { locale, dict } = await getDictionary();
   const audience = await getAppAudience();
   const lists = user ? await listRepository.findAccessibleByUser(user.id) : [];
@@ -51,12 +56,66 @@ export default async function ListsPage() {
             button: "Lijst maken",
             helper: "CSV-import blijft beschikbaar, maar is voor normaal gebruik optioneel."
           };
+  const businessTopCopy =
+    locale === "en"
+      ? {
+          title: "Work lists",
+          subtitle: "Collect addresses, import in bulk, and keep every viewing day tidy.",
+          activeTitle: "Active work lists",
+          activeSubtitle: "Use these as the basis for today, imports, and team planning."
+        }
+      : locale === "tr"
+        ? {
+            title: "Is listeleri",
+            subtitle: "Adresleri topla, toplu aktar ve gosterim gunlerini duzenli tut.",
+            activeTitle: "Aktif is listeleri",
+            activeSubtitle: "Bunlari bugun, ice aktarma ve ekip planlamasi icin temel olarak kullan."
+          }
+        : {
+            title: "Werklijsten",
+            subtitle: "Verzamel adressen, importeer in bulk en houd bezichtigingsdagen strak georganiseerd.",
+            activeTitle: "Actieve werklijsten",
+            activeSubtitle: "Gebruik deze als basis voor vandaag, import en teamafstemming."
+          };
 
   return (
     <PageContainer className="gap-4">
-      <AppTopBar title={dict.lists.topTitle} subtitle={dict.lists.topSubtitle} />
+      <AppTopBar
+        title={audience === "business" ? businessTopCopy.title : dict.lists.topTitle}
+        subtitle={audience === "business" ? businessTopCopy.subtitle : dict.lists.topSubtitle}
+      />
+      {params?.createError ? (
+        <div className="rounded-[var(--radius)] border border-[color:rgba(185,56,47,0.16)] bg-[color:rgba(185,56,47,0.08)] px-4 py-3 text-sm text-[var(--foreground)] shadow-[var(--shadow-soft)]">
+          {params.createError}
+        </div>
+      ) : null}
       {audience === "business" ? (
-        <section className="space-y-3 rounded-[var(--radius-xl)] border border-[var(--border)] bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] px-4 py-4 shadow-[var(--shadow-soft)]">
+        <section className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-soft)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Stap 1</p>
+            <p className="mt-2 text-base font-semibold text-[var(--foreground)]">Maak of kies een werklijst</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+              Gebruik een lijst als vaste container voor een bezichtigingsdag, wijkronde of teamplanning.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-soft)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Stap 2</p>
+            <p className="mt-2 text-base font-semibold text-[var(--foreground)]">Importeer adressen of vul handmatig aan</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+              Werk vanuit CSV als je snelheid wilt. Handmatige invoer blijft beschikbaar voor losse uitzonderingen.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[var(--shadow-soft)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Stap 3</p>
+            <p className="mt-2 text-base font-semibold text-[var(--foreground)]">Werk pas daarna de dagvolgorde uit</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+              Laat SamenRoute daarna rustig voorstellen hoe je de dag logisch plant rond al bekende afspraken.
+            </p>
+          </div>
+        </section>
+      ) : null}
+      {audience === "business" ? (
+        <section className="space-y-4 rounded-[var(--radius-xl)] border border-[var(--border)] bg-[linear-gradient(180deg,#ffffff_0%,#f7f5ef_100%)] px-4 py-4 shadow-[var(--shadow-soft)]">
           <div className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
             <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
             Zakelijke snelle start
@@ -65,7 +124,7 @@ export default async function ListsPage() {
             Werk je met adressen uit Excel, CRM of een bezichtigingsplanning? Maak hier direct een zakelijke lijst aan en open daarna
             meteen de CSV-import.
           </p>
-          <div className="grid gap-3 sm:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
             <form action={createListAndOpenImportAction} className="space-y-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
               <div>
                 <p className="text-sm font-semibold text-[var(--foreground)]">1. Maak je importlijst aan</p>
@@ -85,23 +144,36 @@ export default async function ListsPage() {
                 <ArrowRight className="h-4 w-4" />
               </FormSubmitButton>
             </form>
-            <div className="space-y-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
-              <div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">2. Gebruik desnoods eerst het voorbeeldbestand</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
-                  Zo zie je meteen welk formaat SamenRoute verwacht voor adres, stad, notitie en categorie.
-                </p>
+            <div className="grid gap-3">
+              <div className="space-y-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">2. Gebruik desnoods eerst het voorbeeldbestand</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
+                    Zo zie je meteen welk formaat SamenRoute verwacht voor adres, stad, notitie en categorie.
+                  </p>
+                </div>
+                <a
+                  href="/examples/makelaars-import-voorbeeld.csv"
+                  download
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)]"
+                >
+                  <Download className="h-4 w-4 text-[var(--accent)]" />
+                  Download voorbeeld-CSV
+                </a>
               </div>
-              <a
-                href="/examples/makelaars-import-voorbeeld.csv"
-                download
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)]"
-              >
-                <Download className="h-4 w-4 text-[var(--accent)]" />
-                Download voorbeeld-CSV
-              </a>
-              <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-                Na het aanmaken opent SamenRoute direct de import-preview, zodat je niet nog een keer hoeft te zoeken.
+              <div className="rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
+                <p className="text-sm font-semibold text-[var(--foreground)]">Wat hierna gebeurt</p>
+                <div className="mt-3 space-y-2">
+                  <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                    SamenRoute opent direct je CSV-preview.
+                  </div>
+                  <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                    Daarna controleer je regels, lege velden en dubbele adressen.
+                  </div>
+                  <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                    Pas daarna werk je de dagvolgorde uit voor route en afspraken.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -146,28 +218,43 @@ export default async function ListsPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             <Link
               href={`/lists/${activeLists[0].id}?focus=csv-import#csv-import`}
-              className="flex min-h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow)]"
+              className="flex min-h-[120px] flex-col items-start justify-between rounded-2xl bg-[var(--accent)] px-4 py-4 text-white shadow-[var(--shadow)]"
             >
-              Open CSV-import
+              <FileSpreadsheet className="h-5 w-5" />
+              <div>
+                <p className="text-sm font-semibold">Open CSV-import</p>
+                <p className="mt-1 text-xs leading-5 text-white/80">Voeg adressen toe uit bestand of controleer je preview opnieuw.</p>
+              </div>
             </Link>
             <Link
               href={`/today?listId=${activeLists[0].id}`}
-              className="flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)]"
+              className="flex min-h-[120px] flex-col items-start justify-between rounded-2xl border border-[var(--border)] bg-white px-4 py-4 text-[var(--foreground)]"
             >
-              Werk dagvolgorde uit
+              <Route className="h-5 w-5 text-[var(--accent)]" />
+              <div>
+                <p className="text-sm font-semibold">Werk dagvolgorde uit</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">Laat de dag logisch ordenen rond open adressen en afspraken.</p>
+              </div>
             </Link>
             <a
               href="/examples/makelaars-import-voorbeeld.csv"
               download
-              className="flex min-h-12 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 text-sm font-semibold text-[var(--foreground)]"
+              className="flex min-h-[120px] flex-col items-start justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-4 text-[var(--foreground)]"
             >
-              Download voorbeeld-CSV
+              <Download className="h-5 w-5 text-[var(--accent)]" />
+              <div>
+                <p className="text-sm font-semibold">Download voorbeeld-CSV</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">Gebruik dit als sjabloon voor naam, adres, stad, notitie en categorie.</p>
+              </div>
             </a>
           </div>
         </section>
       ) : null}
       <section className="space-y-3">
-        <SectionHeader title={dict.lists.activeTitle} subtitle={dict.lists.activeSubtitle} />
+        <SectionHeader
+          title={audience === "business" ? businessTopCopy.activeTitle : dict.lists.activeTitle}
+          subtitle={audience === "business" ? businessTopCopy.activeSubtitle : dict.lists.activeSubtitle}
+        />
         {activeLists.length > 0 ? (
           activeLists.map((list) => (
             <div key={list.id} className="space-y-2">
@@ -194,32 +281,64 @@ export default async function ListsPage() {
                   rolePrefix: dict.lists.rolePrefix
                 }}
               />
-              <div className="flex flex-wrap justify-end gap-2 pr-1">
+              <div className="grid gap-2 sm:grid-cols-3">
                 {audience === "business" ? (
-                  <Link
-                    href={`/lists/${list.id}?focus=csv-import#csv-import`}
-                    className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-3 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
-                  >
-                    CSV-import
-                  </Link>
-                ) : null}
-                <form action={duplicateListAction}>
-                  <input type="hidden" name="listId" value={list.id} />
-                  <FormSubmitButton
-                    type="submit"
-                    variant="ghost"
-                    size="sm"
-                    pendingLabel="Bezig..."
-                    className="min-h-8 rounded-xl px-2.5 text-xs font-medium text-[var(--muted-foreground)]"
-                  >
-                    {dict.lists.duplicate}
-                  </FormSubmitButton>
-                </form>
+                  <>
+                    <Link
+                      href={`/lists/${list.id}`}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+                    >
+                      <FolderOpen className="h-4 w-4 text-[var(--accent)]" />
+                      Open lijst
+                    </Link>
+                    <Link
+                      href={`/lists/${list.id}?focus=csv-import#csv-import`}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 text-sm font-semibold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 text-[var(--accent)]" />
+                      CSV-import
+                    </Link>
+                    <Link
+                      href={`/today?listId=${list.id}`}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-3 text-sm font-semibold text-white shadow-[var(--shadow)]"
+                    >
+                      <Route className="h-4 w-4" />
+                      Werk dagvolgorde uit
+                    </Link>
+                  </>
+                ) : (
+                  <div className="flex flex-wrap justify-end gap-2 pr-1 sm:col-span-3">
+                    <form action={duplicateListAction}>
+                      <input type="hidden" name="listId" value={list.id} />
+                      <FormSubmitButton
+                        type="submit"
+                        variant="ghost"
+                        size="sm"
+                        pendingLabel="Bezig..."
+                        className="min-h-8 rounded-xl px-2.5 text-xs font-medium text-[var(--muted-foreground)]"
+                      >
+                        {dict.lists.duplicate}
+                      </FormSubmitButton>
+                    </form>
+                  </div>
+                )}
               </div>
+              {audience === "business" ? (
+                <div className="rounded-2xl bg-[var(--surface-subtle)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                  Handige volgorde: eerst import of controle, daarna pas dagvolgorde en navigatie.
+                </div>
+              ) : null}
             </div>
           ))
         ) : (
-          <EmptyState title={dict.lists.noLists} description={dict.lists.noListsBody} />
+          <EmptyState
+            title={audience === "business" ? "Nog geen werklijsten" : dict.lists.noLists}
+            description={
+              audience === "business"
+                ? "Maak hierboven eerst een importlijst aan. Daarna kun je CSV uploaden, adressen controleren en pas dan de dagvolgorde uitwerken."
+                : dict.lists.noListsBody
+            }
+          />
         )}
       </section>
       {archivedLists.length > 0 ? (

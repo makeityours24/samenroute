@@ -41,13 +41,15 @@ async function requireUserOrThrow() {
 
 export async function createListAction(formData: FormData) {
   const user = await requireUserOrThrow();
-  await createListService(user, {
+  const list = await createListService(user, {
     name: String(formData.get("name") ?? ""),
     description: String(formData.get("description") ?? "") || undefined,
     coverColor: String(formData.get("coverColor") ?? "") || undefined
   });
   revalidatePath("/lists");
   revalidatePath("/home");
+  revalidatePath(`/lists/${list.id}`);
+  redirect(`/lists/${list.id}`);
 }
 
 export async function createListAndOpenImportAction(formData: FormData) {

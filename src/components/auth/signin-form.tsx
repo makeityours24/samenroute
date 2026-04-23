@@ -5,6 +5,10 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const MAGIC_LINK_TIMEOUT_MS = 12000;
+
+type SignInResult = Awaited<ReturnType<typeof signIn>>;
+
 export function SignInForm({
   enableDemoLogin,
   defaultEmail,
@@ -44,23 +48,33 @@ export function SignInForm({
     setPending(true);
     setMessage(null);
     setStatus("idle");
-    const result = await signIn("email", {
-      email: nextEmail,
-      redirect: false,
-      callbackUrl: callbackUrl ?? "/home"
-    });
+    try {
+      const result = (await Promise.race([
+        signIn("email", {
+          email: nextEmail,
+          redirect: false,
+          callbackUrl: callbackUrl ?? "/home"
+        }),
+        new Promise<SignInResult>((_, reject) => {
+          window.setTimeout(() => reject(new Error("magic-link-timeout")), MAGIC_LINK_TIMEOUT_MS);
+        })
+      ])) as SignInResult;
 
-    if (result?.error) {
+      if (!result || result.error || result.ok === false) {
+        setMessage(copy.magicLinkError);
+        setStatus("error");
+        return;
+      }
+
+      setMessage(copy.magicLinkSent);
+      setSentEmail(nextEmail);
+      setStatus("success");
+    } catch {
       setMessage(copy.magicLinkError);
       setStatus("error");
+    } finally {
       setPending(false);
-      return;
     }
-
-    setPending(false);
-    setMessage(copy.magicLinkSent);
-    setSentEmail(nextEmail);
-    setStatus("success");
   }
 
   return (

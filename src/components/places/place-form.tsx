@@ -10,6 +10,9 @@ import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { Toast } from "@/components/ui/toast";
 
+const PLACE_LOOKUP_DEBOUNCE_MS = 450;
+const PLACE_LOOKUP_TIMEOUT_MS = 8000;
+
 type CategoryOption = { id: string; name: string };
 type LookupItem = {
   externalSourceId: string;
@@ -201,6 +204,8 @@ export function PlaceForm({
 
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
+      const requestTimeout = window.setTimeout(() => controller.abort(), PLACE_LOOKUP_TIMEOUT_MS);
+
       try {
         setLookupPending(true);
         const search = new URLSearchParams({ q: trimmedQuery });
@@ -220,6 +225,7 @@ export function PlaceForm({
 
         if (!response.ok) {
           setLookupResults([]);
+          setLookupMessage(null);
           return;
         }
 
@@ -230,9 +236,10 @@ export function PlaceForm({
           setLookupResults([]);
         }
       } finally {
+        window.clearTimeout(requestTimeout);
         setLookupPending(false);
       }
-    }, 450);
+    }, PLACE_LOOKUP_DEBOUNCE_MS);
 
     return () => {
       controller.abort();

@@ -66,6 +66,14 @@ export function PlannerForm({
     selectedStopsSummary: string;
     recommendedStopsHint: string;
     recommendedBadge: string;
+    fixedPlanningTitle: string;
+    fixedPlanningHelp: string;
+    fixedPlanningEmpty: string;
+    fixedPlanningActive: string;
+    fixedPlanningActivePlural: string;
+    fixedStopBadge: string;
+    makeFixedStop: string;
+    removeFixedStop: string;
     smartProposalLabel: string;
     routeStrategySummaryFastest: string;
     routeStrategySummaryPriority: string;
@@ -84,6 +92,7 @@ export function PlannerForm({
   const [routeOrderingStrategy, setRouteOrderingStrategy] = useState("FASTEST");
   const [transportMode, setTransportMode] = useState(initialTransportMode ?? "WALKING");
   const [selectedStopIds, setSelectedStopIds] = useState(() => stops.filter((stop) => stop.defaultChecked).map((stop) => stop.id));
+  const [fixedStopIds, setFixedStopIds] = useState<string[]>([]);
   const labels = copy ?? {
     step1: "Choose a list",
     step2: "Choose today’s stops",
@@ -114,6 +123,14 @@ export function PlannerForm({
     selectedStopsSummary: "stops selected for this route",
     recommendedStopsHint: "SamenRoute zet sterke kandidaten alvast hoger op basis van wat je vaker bewaart, bezoekt of belangrijk maakt.",
     recommendedBadge: "Recommended",
+    fixedPlanningTitle: "Fixed appointments",
+    fixedPlanningHelp: "Mark stops that already have a fixed time. SamenRoute keeps those anchors in place and fills the open gaps logically around them.",
+    fixedPlanningEmpty: "No fixed appointments selected yet. Then SamenRoute determines the full order.",
+    fixedPlanningActive: "{count} fixed appointment stays in place; the other stops are arranged around it.",
+    fixedPlanningActivePlural: "{count} fixed appointments stay in place; the other stops are arranged around them.",
+    fixedStopBadge: "Fixed",
+    makeFixedStop: "Pin slot",
+    removeFixedStop: "Release slot",
     smartProposalLabel: "Best proposal for today",
     routeStrategySummaryFastest: "Best when you just want a practical order as quickly as possible.",
     routeStrategySummaryPriority: "Best when important places should come first, even if that is not the shortest path.",
@@ -129,6 +146,7 @@ export function PlannerForm({
 
   useEffect(() => {
     setSelectedStopIds(stops.filter((stop) => stop.defaultChecked).map((stop) => stop.id));
+    setFixedStopIds([]);
     setSelectionError(stops.length > 0 ? (initialError ?? null) : null);
   }, [initialError, stops]);
 
@@ -163,6 +181,15 @@ export function PlannerForm({
 
     return labels.transportSummaryWalking;
   }, [labels.transportSummaryBicycling, labels.transportSummaryDriving, labels.transportSummaryTransit, labels.transportSummaryWalking, transportMode]);
+
+  const fixedSummary = useMemo(() => {
+    if (fixedStopIds.length === 0) {
+      return labels.fixedPlanningEmpty;
+    }
+
+    const template = fixedStopIds.length === 1 ? labels.fixedPlanningActive : labels.fixedPlanningActivePlural;
+    return template.replace("{count}", String(fixedStopIds.length));
+  }, [fixedStopIds.length, labels.fixedPlanningActive, labels.fixedPlanningActivePlural, labels.fixedPlanningEmpty]);
 
   return (
     <form
@@ -201,6 +228,9 @@ export function PlannerForm({
       <PlannerStepCard step="2" title={labels.step2}>
         {stops.length > 0 ? (
           <>
+            {fixedStopIds.map((stopId) => (
+              <input key={stopId} type="hidden" name="fixedListPlaceIds" value={stopId} />
+            ))}
             <div className="space-y-1 rounded-2xl bg-[var(--surface-subtle)] px-4 py-3">
               {suggestionSummary ? (
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">{labels.smartProposalLabel}</p>
@@ -212,10 +242,19 @@ export function PlannerForm({
               <p className="text-xs leading-5 text-[var(--muted-foreground)]">{labels.step2Help}</p>
               <p className="text-xs leading-5 text-[var(--muted-foreground)]">{labels.recommendedStopsHint}</p>
             </div>
+            <div className="space-y-2 rounded-2xl border border-[var(--border)] px-4 py-3">
+              <p className="text-sm font-semibold text-[var(--foreground)]">{labels.fixedPlanningTitle}</p>
+              <p className="text-xs leading-5 text-[var(--muted-foreground)]">{labels.fixedPlanningHelp}</p>
+              <p className="text-xs leading-5 text-[var(--foreground)]">{fixedSummary}</p>
+            </div>
             <PlannerStopList
               items={stops}
               selectedIds={selectedStopIds}
+              fixedIds={fixedStopIds}
               recommendedLabel={labels.recommendedBadge}
+              fixedLabel={labels.fixedStopBadge}
+              makeFixedLabel={labels.makeFixedStop}
+              removeFixedLabel={labels.removeFixedStop}
               onToggle={(id, checked) => {
                 setSelectionError(null);
                 setSelectedStopIds((current) => {
@@ -223,8 +262,13 @@ export function PlannerForm({
                     return current.includes(id) ? current : [...current, id];
                   }
 
+                  setFixedStopIds((currentFixedIds) => currentFixedIds.filter((currentId) => currentId !== id));
+
                   return current.filter((currentId) => currentId !== id);
                 });
+              }}
+              onToggleFixed={(id) => {
+                setFixedStopIds((current) => (current.includes(id) ? current.filter((currentId) => currentId !== id) : [...current, id]));
               }}
             />
             {selectionError ? <p className="pt-2 text-sm font-medium text-[var(--danger)]">{selectionError}</p> : null}

@@ -7,11 +7,11 @@ function getHostname(request: NextRequest) {
   return host.split(":")[0].toLowerCase();
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const hostname = getHostname(request);
   const { pathname } = request.nextUrl;
 
-  if (hostname === "makelaars.samenroute.nl" && (pathname === "/" || pathname.startsWith("/demo"))) {
+  if (hostname === "makelaars.samenroute.nl" && (pathname === "/" || pathname.startsWith("/demo") || pathname.startsWith("/gesprek"))) {
     const url = request.nextUrl.clone();
     url.pathname = pathname === "/" ? "/makelaars" : `/makelaars${pathname}`;
     return NextResponse.rewrite(url);
